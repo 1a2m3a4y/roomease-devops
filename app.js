@@ -1,58 +1,61 @@
 require("dotenv").config();
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
-// 👉 IMPORT MODEL HERE
-const Student = require("./models/Student");
-
 const app = express();
 
+// Middleware
 app.use(express.json());
 app.use(cors());
 
+// Import Model
+const Student = require("./models/Student");
 
-// ✅ ROOT ROUTE
-app.get("/", (req, res) => {
-  res.send("RoomEase API Running 🚀");
-});
-
-
-// 🚀 👉 ADD YOUR APIs HERE (JUST BELOW THIS)
-
-app.post("/add", async (req, res) => {
-  try {
-    const student = new Student(req.body);
-    await student.save();
-    res.send(student);
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
-app.get("/students", async (req, res) => {
-  const students = await Student.find();
-  res.send(students);
-});
-
-app.put("/allocate/:id", async (req, res) => {
-  const student = await Student.findByIdAndUpdate(
-    req.params.id,
-    { roomNumber: req.body.roomNumber },
-    { new: true }
-  );
-  res.send(student);
-});
-
-
-// ✅ DATABASE CONNECTION
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log(err));
 
+// Routes
 
-// ✅ SERVER START
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+// Test route
+app.get("/", (req, res) => {
+    res.send("RoomEase Backend Running 🚀");
+});
+
+// Add student
+app.post("/add", async (req, res) => {
+    try {
+        const { name, roomNumber } = req.body;
+
+        const newStudent = new Student({
+            name,
+            roomNumber
+        });
+
+        await newStudent.save();
+        res.json(newStudent);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get all students
+app.get("/students", async (req, res) => {
+    try {
+        const students = await Student.find();
+        res.json(students);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PORT FIX (IMPORTANT FOR RENDER)
+const PORT = process.env.PORT || 3000;
+
+// Start server
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
