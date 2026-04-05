@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="RoomEase - Hostel management: registration, entry/exit tracking, curfew enforcement, and violation records." />
+  <title>RoomEase - Hostel Room Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- LightRays Canvas Background -->
+  <canvas id="lightRaysCanvas"></canvas>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-mark"></div>
+        <span class="brand-name">RoomEase</span>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home" class="nav-link active">Home</a></li>
+        <li><a href="#register" class="nav-link">Register</a></li>
+        <li><a href="#directory" class="nav-link">Directory</a></li>
+        <li><a href="#attendance" class="nav-link">Attendance</a></li>
+        <li><a href="#violations" class="nav-link">Violations</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-bg">
+      <div class="hero-grid"></div>
+      <div class="hero-glow glow-1"></div>
+      <div class="hero-glow glow-2"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">Hostel Management System</div>
+      <h1 class="hero-title blur-text">Managing rooms<br>without the chaos</h1>
+      <p class="hero-subtitle">
+        Register residents, enforce curfew rules automatically, track every entry and exit,
+        and log violations — all from one dashboard.
+      </p>
+      <div class="hero-actions">
+        <a href="#register" class="btn btn-primary">Register a Student</a>
+        <a href="#directory" class="btn btn-ghost">View Directory</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number" id="stat-total">--</span>
+          <span class="stat-label">Registered Students</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="stat-rooms">--</span>
+          <span class="stat-label">Rooms Occupied</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="stat-violations">--</span>
+          <span class="stat-label">Total Violations</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="stat-fines">--</span>
+          <span class="stat-label">Unpaid Fines (INR)</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="card-float card-float-1">
+        <div class="mini-card">
+          <div class="mini-card-top">
+            <div class="mini-avatar bg-teal"></div>
+            <div class="mini-info">
+              <div class="mini-name">Rahul Sharma</div>
+              <div class="mini-room">Room 201</div>
+            </div>
+          </div>
+          <div class="mini-status status-active">Active</div>
+        </div>
+      </div>
+      <div class="card-float card-float-2">
+        <div class="mini-card">
+          <div class="mini-card-top">
+            <div class="mini-avatar bg-amber"></div>
+            <div class="mini-info">
+              <div class="mini-name">Priya Mehta</div>
+              <div class="mini-room">Room 104</div>
+            </div>
+          </div>
+          <div class="mini-status status-active">Active</div>
+        </div>
+      </div>
+      <div class="card-float card-float-3">
+        <div class="notification-card">
+          <div class="notif-dot"></div>
+          <span>Late entry warning issued</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Curfew Rules Banner -->
+  <div class="rules-banner" id="rules-banner">
+    <div class="container rules-inner">
+      <div class="rule-item">
+        <span class="rule-label">Entry Curfew</span>
+        <span class="rule-value">10:30 PM</span>
+        <span class="rule-desc">2nd late entry triggers a ₹200 fine automatically</span>
+      </div>
+      <div class="rule-divider"></div>
+      <div class="rule-item">
+        <span class="rule-label">Exit Curfew</span>
+        <span class="rule-value">10:20 PM</span>
+        <span class="rule-desc">Exits after 10:20 PM require Travel Ticket or Medical Emergency</span>
+      </div>
+      <div class="rule-divider"></div>
+      <div class="rule-item">
+        <span class="rule-label">Noise Complaint</span>
+        <span class="rule-value">₹200 fine</span>
+        <span class="rule-desc">Per incident</span>
+      </div>
+      <div class="rule-divider"></div>
+      <div class="rule-item">
+        <span class="rule-label">Room Damage</span>
+        <span class="rule-value">₹5,000 fine</span>
+        <span class="rule-desc">Per verified damage report</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Section -->
+  <section class="register-section" id="register">
+    <div class="container">
+      <div class="two-col">
+        <div class="col-text">
+          <div class="section-tag">Registration</div>
+          <h2 class="section-title blur-text">Add a new resident</h2>
+          <p class="section-desc">Fill in the student details below. The record is saved immediately and appears in the
+            directory.</p>
+          <div class="info-list">
+            <div class="info-row">
+              <div class="info-dot"></div><span>Stored securely in MongoDB Atlas</span>
+            </div>
+            <div class="info-row">
+              <div class="info-dot"></div><span>Curfew rules apply from the moment of registration</span>
+            </div>
+            <div class="info-row">
+              <div class="info-dot"></div><span>Full attendance and violation history tracked per student</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-form">
+          <div class="form-card">
+            <h3 class="form-title">Student Details</h3>
+            <form id="registerForm" novalidate>
+              <div class="form-group">
+                <label for="studentName" class="form-label">Full Name</label>
+                <input type="text" id="studentName" name="name" class="form-input" placeholder="e.g. John Doe"
+                  autocomplete="name" required />
+                <span class="field-error" id="nameError"></span>
+              </div>
+              <div class="form-group">
+                <label for="roomNumber" class="form-label">Room Number</label>
+                <input type="number" id="roomNumber" name="roomNumber" class="form-input" placeholder="e.g. 301" min="1"
+                  required />
+                <span class="field-error" id="roomError"></span>
+              </div>
+              <div class="form-group">
+                <label for="studentCollege" class="form-label">College</label>
+                <select id="studentCollege" name="college" class="form-input" required>
+                  <option value="MSRIT" selected>MSRIT</option>
+                  <option value="MSRIT External Hostels">MSRIT External Hostels</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="hostelBlock" class="form-label">Hostel Block</label>
+                <select id="hostelBlock" name="hostelBlock" class="form-input" required>
+                  <option value="">-- Select Block --</option>
+                  <option value="Aryabhatta Hostel">Aryabhatta Hostel</option>
+                  <option value="Fresher's Block">Fresher's Block</option>
+                  <option value="Ratan Tata Block">Ratan Tata Block</option>
+                </select>
+                <span class="field-error" id="blockError"></span>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+                <span class="btn-label">Register Student</span>
+                <span class="btn-loader" hidden></span>
+              </button>
+            </form>
+            <div class="form-feedback" id="formFeedback" hidden>
+              <div class="feedback-icon"></div>
+              <div class="feedback-text" id="feedbackText"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Global Filter Section -->
+  <section class="filter-section" id="global-filter" style="background: var(--bg-surface); padding-bottom: 0;">
+    <div class="container">
+      <div class="form-card" style="padding: 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <h3 style="margin: 0; font-size: 16px; color: var(--accent-amber);">Select Hostel to View Data:</h3>
+        <select id="globalCollegeFilter" class="form-input" style="width: 250px;">
+          <option value="">-- Select College --</option>
+          <option value="MSRIT">MSRIT</option>
+          <option value="MSRIT External Hostels">MSRIT External Hostels</option>
+        </select>
+        <select id="globalBlockFilter" class="form-input" style="width: 250px;">
+          <option value="">-- Select Block --</option>
+        </select>
+        <button id="globalFilterBtn" class="btn btn-primary" style="padding: 10px 24px;">Continue</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Directory Section -->
+  <section class="directory-section" id="directory">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Live Directory</div>
+        <h2 class="section-title blur-text">All registered students</h2>
+        <p class="section-desc">Log attendance, file violations, view history, or remove a student from each card.</p>
+      </div>
+      <div class="directory-controls">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search by name or room..." />
+        </div>
+        <button class="btn btn-outline" id="refreshBtn">Refresh</button>
+      </div>
+      <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p>Fetching students...</p>
+      </div>
+      <div class="empty-state" id="emptyState" hidden>
+        <div class="empty-icon"></div>
+        <h3>No students found</h3>
+        <p>Register a new resident above to get started.</p>
+        <a href="#register" class="btn btn-primary">Register First Student</a>
+      </div>
+      <div class="student-grid" id="studentGrid"></div>
+      <div class="directory-footer" id="directoryFooter" hidden>
+        <span class="count-text" id="countText"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Attendance Section -->
+  <section class="attendance-section" id="attendance">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Attendance</div>
+        <h2 class="section-title blur-text">Entry and exit log</h2>
+        <p class="section-desc">Timestamped record of every student movement. Late entries and approved exceptions are
+          marked automatically.</p>
+      </div>
+      <div class="attendance-controls">
+        <button class="btn btn-primary" id="openAttendanceFormBtn">Log Entry / Exit</button>
+        <div class="search-wrapper">
+          <svg class="search-icon" width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <input type="text" id="attendanceSearch" class="search-input" placeholder="Filter by name or room..." />
+        </div>
+        <div class="filter-tabs" id="attendanceFilter">
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="entry">Entries</button>
+          <button class="filter-tab" data-filter="exit">Exits</button>
+          <button class="filter-tab" data-filter="late">Late</button>
+        </div>
+      </div>
+      <div class="loading-state" id="attendanceLoading">
+        <div class="spinner"></div>
+        <p>Fetching attendance records...</p>
+      </div>
+      <div class="empty-state" id="attendanceEmpty" hidden>
+        <div class="empty-icon"></div>
+        <h3>No records yet</h3>
+        <p>Log the first entry or exit to see records here.</p>
+      </div>
+      <div class="log-table-wrap" id="attendanceTableWrap" hidden>
+        <table class="log-table" id="attendanceTable">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Room</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status / Note</th>
+              <th style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Violations Section -->
+  <section class="violations-section" id="violations">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Violations &amp; Fines</div>
+        <h2 class="section-title blur-text">Violation registry</h2>
+        <p class="section-desc">Track disciplinary incidents with fine amounts. Curfew violations over the warning
+          threshold are raised automatically.</p>
+      </div>
+      <div class="attendance-controls">
+        <button class="btn btn-danger" id="openViolationFormBtn">File a Violation</button>
+        <div class="search-wrapper">
+          <svg class="search-icon" width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <input type="text" id="violationSearch" class="search-input" placeholder="Filter by name or type..." />
+        </div>
+        <div class="filter-tabs" id="violationFilter">
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="unpaid">Unpaid</button>
+          <button class="filter-tab" data-filter="high">High</button>
+          <button class="filter-tab" data-filter="medium">Medium</button>
+          <button class="filter-tab" data-filter="low">Low</button>
+        </div>
+      </div>
+      <div class="loading-state" id="violationsLoading">
+        <div class="spinner"></div>
+        <p>Fetching violations...</p>
+      </div>
+      <div class="empty-state" id="violationsEmpty" hidden>
+        <div class="empty-icon"></div>
+        <h3>No violations recorded</h3>
+        <p>File a violation report when a rule is broken.</p>
+      </div>
+      <div class="violations-grid" id="violationsGrid"></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="footer-section">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="brand-mark"></div>
+          <span class="brand-name">RoomEase</span>
+        </div>
+        <p class="footer-tagline">A DevSecOps project demonstrating end-to-end CI/CD with Node.js, Docker, and MongoDB.
+        </p>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">Built with care. Deployed with precision.</span>
+        <div class="footer-stack">
+          <span class="stack-tag">Node.js</span>
+          <span class="stack-tag">Express</span>
+          <span class="stack-tag">MongoDB</span>
+          <span class="stack-tag">Docker</span>
+          <span class="stack-tag">GitHub Actions</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL: Log Entry / Exit -->
+  <div class="modal-overlay" id="attendanceModal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="attendanceModalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="attendanceModalTitle">Log Entry / Exit</h2>
+        <button class="modal-close" id="closeAttendanceModal" aria-label="Close">&times;</button>
+      </div>
+
+      <!-- Current time display -->
+      <div class="time-display" id="currentTimeDisplay">
+        <div class="time-clock" id="liveClock">--:--:--</div>
+        <div class="time-label" id="curfewStatusLabel">Checking curfew status...</div>
+      </div>
+
+      <form id="attendanceForm" novalidate>
+        <div class="form-group">
+          <label for="attStudent" class="form-label">Student</label>
+          <select id="attStudent" class="form-input" required>
+            <option value="">-- Select a student --</option>
+          </select>
+          <span class="field-error" id="attStudentError"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <div class="toggle-group">
+            <label class="toggle-option">
+              <input type="radio" name="attType" value="entry" id="attTypeEntry" checked />
+              <span class="toggle-label toggle-entry">Entry</span>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="attType" value="exit" id="attTypeExit" />
+              <span class="toggle-label toggle-exit">Exit</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Exit exception (shown only when exit is selected and after curfew time) -->
+        <div class="form-group" id="exitExceptionGroup" hidden>
+          <div class="curfew-warning-box" id="exitCurfewWarning">
+            Exit is restricted after 10:20 PM. Select an approved exception to proceed.
+          </div>
+          <label for="exitException" class="form-label">Exception Reason</label>
+          <select id="exitException" class="form-input">
+            <option value="">-- No exception (exit may be blocked) --</option>
+            <option value="Travel Ticket">Travel Ticket</option>
+            <option value="Medical Emergency">Medical Emergency</option>
+          </select>
+        </div>
+
+        <!-- Late entry warning (shown when entry selected and current time is past 10:30 PM) -->
+        <div class="curfew-warning-box curfew-warning-late" id="lateEntryWarning" hidden>
+          Current time is past 10:30 PM curfew. This will be recorded as a <strong>late entry</strong>.
+          After 2 warnings, a ₹200 fine applies automatically.
+        </div>
+
+        <div class="form-group">
+          <label for="attNote" class="form-label">Note (optional)</label>
+          <input type="text" id="attNote" class="form-input" placeholder="e.g. returned from weekend leave" />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelAttendanceModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitAttendanceBtn">
+            <span class="btn-label">Save Record</span>
+            <span class="btn-loader" hidden></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: File Violation -->
+  <div class="modal-overlay" id="violationModal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="violationModalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="violationModalTitle">File a Violation</h2>
+        <button class="modal-close" id="closeViolationModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="violationForm" novalidate>
+        <div class="form-group">
+          <label for="violStudent" class="form-label">Student</label>
+          <select id="violStudent" class="form-input" required>
+            <option value="">-- Select a student --</option>
+          </select>
+          <span class="field-error" id="violStudentError"></span>
+        </div>
+        <div class="form-group">
+          <label for="violType" class="form-label">Violation Type</label>
+          <select id="violType" class="form-input" required id="violType">
+            <option value="">-- Select type --</option>
+            <option value="Noise Complaint">Noise Complaint — Fine: ₹200</option>
+            <option value="Late Return (Curfew)">Late Return (Curfew) — Fine: ₹200</option>
+            <option value="Room Damage">Room Damage — Fine: ₹5,000</option>
+            <option value="Property Damage">Property Damage — Fine: ₹5,000</option>
+            <option value="Unauthorized Guest">Unauthorized Guest — Fine: ₹500</option>
+            <option value="Smoking / Alcohol">Smoking / Alcohol — Fine: ₹1,000</option>
+            <option value="Mess Rule Violation">Mess Rule Violation — Fine: ₹300</option>
+            <option value="Ragging">Ragging — Fine: ₹2,000</option>
+            <option value="Theft">Theft — Fine: ₹3,000</option>
+            <option value="Abusive Behaviour">Abusive Behaviour — Fine: ₹500</option>
+            <option value="Other">Other — Fine: Nil</option>
+          </select>
+          <span class="field-error" id="violTypeError"></span>
+        </div>
+
+        <!-- Fine preview -->
+        <div class="fine-preview" id="finePreview" hidden>
+          <span class="fine-label">Applicable Fine</span>
+          <span class="fine-amount" id="fineAmount">₹0</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Severity</label>
+          <div class="toggle-group">
+            <label class="toggle-option">
+              <input type="radio" name="violSeverity" value="low" />
+              <span class="toggle-label sev-low">Low</span>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="violSeverity" value="medium" checked />
+              <span class="toggle-label sev-medium">Medium</span>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="violSeverity" value="high" />
+              <span class="toggle-label sev-high">High</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="violDesc" class="form-label">Description (optional)</label>
+          <textarea id="violDesc" class="form-input form-textarea"
+            placeholder="Briefly describe the incident..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelViolationModal">Cancel</button>
+          <button type="submit" class="btn btn-danger" id="submitViolationBtn">
+            <span class="btn-label">File Violation</span>
+            <span class="btn-loader" hidden></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirm Remove Student -->
+  <div class="modal-overlay" id="removeModal" hidden>
+    <div class="modal-box modal-box-sm" role="dialog" aria-modal="true" aria-labelledby="removeModalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="removeModalTitle">Remove Student</h2>
+        <button class="modal-close" id="closeRemoveModal" aria-label="Close">&times;</button>
+      </div>
+      <p class="modal-body-text" id="removeModalText">This will permanently remove the student and all associated
+        records.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="cancelRemoveModal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmRemoveBtn">
+          <span class="btn-label">Yes, Remove</span>
+          <span class="btn-loader" hidden></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Student Detail -->
+  <div class="modal-overlay" id="studentDetailModal" hidden>
+    <div class="modal-box modal-box-lg" role="dialog" aria-modal="true" aria-labelledby="studentDetailTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="studentDetailTitle">Student Record</h2>
+        <button class="modal-close" id="closeStudentDetailModal" aria-label="Close">&times;</button>
+      </div>
+      <div id="studentDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Edit Student -->
+  <div class="modal-overlay" id="editStudentModal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editStudentModalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="editStudentModalTitle">Edit Student Details</h2>
+        <button class="modal-close" id="closeEditStudentModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="editStudentForm" novalidate>
+        <input type="hidden" id="editStudentId" />
+        <div class="form-group">
+          <label for="editStudentName" class="form-label">Full Name</label>
+          <input type="text" id="editStudentName" name="name" class="form-input" required />
+          <span class="field-error" id="editNameError"></span>
+        </div>
+        <div class="form-group">
+          <label for="editRoomNumber" class="form-label">Room Number</label>
+          <input type="number" id="editRoomNumber" name="roomNumber" class="form-input" required />
+          <span class="field-error" id="editRoomError"></span>
+        </div>
+        <div class="form-group">
+          <label for="editStudentCollege" class="form-label">College</label>
+          <select id="editStudentCollege" name="college" class="form-input" required>
+            <option value="MSRIT">MSRIT</option>
+            <option value="MSRIT External Hostels">MSRIT External Hostels</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="editHostelBlock" class="form-label">Hostel Block</label>
+          <select id="editHostelBlock" name="hostelBlock" class="form-input" required>
+            <option value="">-- Select Block --</option>
+            <option value="Aryabhatta Hostel">Aryabhatta Hostel</option>
+            <option value="Fresher's Block">Fresher's Block</option>
+            <option value="Ratan Tata Block">Ratan Tata Block</option>
+          </select>
+          <span class="field-error" id="editBlockError"></span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelEditStudentModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitEditStudentBtn">
+            <span class="btn-label">Save Changes</span>
+            <span class="btn-loader" hidden></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Edit Attendance -->
+  <div class="modal-overlay" id="editAttendanceModal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="editAttendanceModalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="editAttendanceModalTitle">Edit Attendance Log</h2>
+        <button class="modal-close" id="closeEditAttendanceModal" aria-label="Close">&times;</button>
+      </div>
+      <form id="editAttendanceForm" novalidate>
+        <input type="hidden" id="editAttendanceId" />
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <div class="toggle-group">
+            <label class="toggle-option">
+              <input type="radio" name="editAttType" value="entry" id="editAttTypeEntry" />
+              <span class="toggle-label toggle-entry">Entry</span>
+            </label>
+            <label class="toggle-option">
+              <input type="radio" name="editAttType" value="exit" id="editAttTypeExit" />
+              <span class="toggle-label toggle-exit">Exit</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editAttNote" class="form-label">Note / Exemption</label>
+          <input type="text" id="editAttNote" class="form-input" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelEditAttendanceModal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitEditAttendanceBtn">
+            <span class="btn-label">Save Changes</span>
+            <span class="btn-loader" hidden></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
