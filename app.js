@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), { index: false }));
 
 const Student    = require("./models/Student");
 const Attendance = require("./models/Attendance");
@@ -77,6 +77,26 @@ app.get("/students", async (req, res) => {
   try {
     const students = await Student.find().sort({ name: 1 });
     res.json(students);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Verify student exists (used by student portal)
+app.get("/students/verify", async (req, res) => {
+  try {
+    const { name, roomNumber, hostelBlock } = req.query;
+    if (!name || !roomNumber) return res.status(400).json({ error: "name and roomNumber are required" });
+
+    const query = {
+      name: new RegExp(`^${name.trim()}$`, "i"),
+      roomNumber: Number(roomNumber)
+    };
+    if (hostelBlock) query.hostelBlock = hostelBlock;
+
+    const student = await Student.findOne(query);
+    if (!student) return res.status(404).json({ verified: false, error: "No registered student found with these details." });
+    res.json({ verified: true, student: { _id: student._id, name: student.name, roomNumber: student.roomNumber, college: student.college, hostelBlock: student.hostelBlock } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
