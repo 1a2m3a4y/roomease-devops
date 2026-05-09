@@ -13,6 +13,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const Student    = require("./models/Student");
 const Attendance = require("./models/Attendance");
 const Violation  = require("./models/Violation");
+const Complaint  = require("./models/Complaint");
 const { VIOLATION_FINES } = require("./models/Violation");
 
 // ── Curfew rules ──────────────────────────────────────────────────────────
@@ -35,7 +36,17 @@ mongoose.connect(process.env.MONGO_URI)
 
 // ── Frontend ──────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "landing.html"));
+});
+
+// Admin portal
+app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Student portal
+app.get("/student", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "student.html"));
 });
 
 // ── Violation types & fines (for frontend to consume) ─────────────────────
@@ -300,6 +311,82 @@ app.get("/stats", async (req, res) => {
       unpaidFineTotal: unpaidFines[0]?.total || 0,
       todayAttendance
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── COMPLAINT ROUTES ─────────────────────────────────────────────────────
+
+// Student submits a complaint
+app.post("/complaints", async (req, res) => {
+  try {
+    const { studentName, roomNumber, hostelBlock, category, title, description } = req.body;
+    if (!studentName || !roomNumber || !hostelBlock || !category || !title) {
+      return res.status(400).json({ error: "studentName, roomNumber, hostelBlock, category, and title are required" });
+    }
+    const complaint = await Complaint.create({
+      studentName: studentName.trim(),
+      roomNumber: Number(roomNumber),
+      hostelBlock,
+      category,
+      title: title.trim(),
+      description: description || ""
+    });
+    res.json(complaint);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin fetches all complaints
+app.get("/complaints", async (req, res) => {
+  try {
+    const complaints = await Complaint.find().sort({ createdAt: -1 });
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Student fetches their own complaints by name + room
+app.get("/complaints/mine", async (req, res) => {
+  try {
+    const { studentName, roomNumber } = req.query;
+    if (!studentName || !roomNumber) {
+      return res.status(400).json({ error: "studentName and roomNumber query params required" });
+    }
+    const complaints = await Complaint.find({
+      studentName: new RegExp(`^${studentName.trim()}$`, "i"),
+      roomNumber: Number(roomNumber)
+    }).sort({ createdAt: -1 });
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin marks a complaint as resolved
+app.patch("/complaints/:id/resolve", async (req, res) => {
+  try {
+    const complaint = await Complaint.findByIdAndUpdate(
+      req.params.id,
+      { status: "resolved", resolvedAt: new Date() },
+      { new: true }
+    );
+    if (!complaint) return res.status(404).json({ error: "Complaint not found" });
+    res.json(complaint);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin deletes a complaint
+app.delete("/complaints/:id", async (req, res) => {
+  try {
+    const complaint = await Complaint.findByIdAndDelete(req.params.id);
+    if (!complaint) return res.status(404).json({ error: "Complaint not found" });
+    res.json({ message: "Complaint deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

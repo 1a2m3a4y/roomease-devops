@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roomease-app
+  namespace: roomease
+  labels:
+    app: roomease
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: roomease
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: roomease
+    spec:
+      containers:
+        - name: roomease
+          # ⚠️  Replace with your actual image, e.g. docker.io/youruser/roomease:latest
+          image: your-dockerhub-username/roomease:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: roomease-config
+                  key: PORT
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: roomease-config
+                  key: NODE_ENV
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: roomease-secret
+                  key: MONGO_URI
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "125m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3

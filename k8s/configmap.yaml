@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: roomease-config
+  namespace: roomease
+  labels:
+    app: roomease
+data:
+  PORT: "3000"
+  NODE_ENV: "production"

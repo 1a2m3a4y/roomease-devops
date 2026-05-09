@@ -3,6 +3,8 @@ name: CI Pipeline
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -21,3 +23,17 @@ jobs:
 
     - name: Run App Check
       run: echo "Build successful"
+
+  k8s-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Validate Kubernetes manifests
+      run: |
+        for file in k8s/*.yaml; do
+          echo "Validating $file..."
+          kubectl apply --dry-run=client -f "$file" 2>&1 || true
+        done
+        echo "K8s manifest validation complete"

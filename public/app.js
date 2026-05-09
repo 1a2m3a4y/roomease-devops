@@ -34,9 +34,11 @@
   let allStudents      = [];
   let allAttendance    = [];
   let allViolations    = [];
+  let allComplaints    = [];
   let removeTargetId   = null;
   let attFilter        = 'all';
   let violFilter       = 'all';
+  let complaintFilter  = 'all';
   let clockInterval    = null;
 
   // ── Utility ──────────────────────────────────────────────────────────────
@@ -68,7 +70,7 @@
   hamburger.addEventListener('click', () => navLinks.classList.toggle('mobile-open'));
   navLinks.querySelectorAll('.nav-link').forEach(l => l.addEventListener('click', () => navLinks.classList.remove('mobile-open')));
 
-  const sections = ['home', 'register', 'directory', 'attendance', 'violations'];
+  const sections = ['home', 'register', 'directory', 'attendance', 'violations', 'complaints'];
   function updateNav() {
     let cur = 'home';
     sections.forEach(id => {
@@ -1266,6 +1268,152 @@
     draw();
   }
 
+  // ── Complaints Section ─────────────────────────────────────────────────────
+  const complaintsLoading = document.getElementById('complaintsLoading');
+  const complaintsEmpty   = document.getElementById('complaintsEmpty');
+  const complaintsGrid    = document.getElementById('complaintsGrid');
+  const complaintSearch   = document.getElementById('complaintSearch');
+
+  async function loadComplaints() {
+    if (!complaintsLoading) return;
+    complaintsLoading.style.display = 'flex';
+    complaintsEmpty.hidden = true;
+    complaintsGrid.innerHTML = '';
+    try {
+      allComplaints = await apiGet('/complaints');
+      renderComplaints();
+    } catch {
+      complaintsLoading.style.display = 'none';
+      complaintsEmpty.hidden = false;
+    }
+  }
+
+  function renderComplaints() {
+    if (!complaintsLoading) return;
+    complaintsLoading.style.display = 'none';
+    const q = (complaintSearch?.value || '').toLowerCase().trim();
+
+    let records = [...allComplaints];
+    if (complaintFilter === 'open')     records = records.filter(c => c.status === 'open');
+    else if (complaintFilter === 'resolved') records = records.filter(c => c.status === 'resolved');
+    if (q) records = records.filter(c =>
+      c.studentName.toLowerCase().includes(q) ||
+      String(c.roomNumber).includes(q) ||
+      c.category.toLowerCase().includes(q) ||
+      c.title.toLowerCase().includes(q)
+    );
+
+    if (records.length === 0) {
+      complaintsGrid.innerHTML = '';
+      complaintsEmpty.hidden = false;
+      setEmptyMsg(complaintsEmpty,
+        q ? 'No complaints found' : 'No complaints yet',
+        q ? 'Try a different search term.' : 'Students can raise complaints via the Student Portal.'
+      );
+      return;
+    }
+
+    complaintsEmpty.hidden = true;
+    complaintsGrid.innerHTML = '';
+    records.forEach((c, i) => complaintsGrid.appendChild(buildComplaintCard(c, i)));
+  }
+
+  function buildComplaintCard(c, index) {
+    const card = document.createElement('div');
+    const resolved = c.status === 'resolved';
+    card.className = `complaint-card${resolved ? ' card-resolved' : ''}`;
+    card.style.animationDelay = `${index * 0.04}s`;
+
+    const dt = new Date(c.createdAt);
+    const dateStr = dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timeStr = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    const catClass = {
+      'Room Issue': 'category-room',
+      'Amenity':    'category-amenity',
+      'Query':      'category-query',
+      'Discrepancy': 'category-disc',
+      'Other':      'category-other'
+    }[c.category] || 'category-other';
+
+    const resolvedAt = c.resolvedAt
+      ? `<div class="resolved-at-note">✓ Resolved ${new Date(c.resolvedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>`
+      : '';
+
+    card.innerHTML = `
+      <div class="complaint-card-header">
+        <div class="complaint-title">${esc(c.title)}</div>
+        <span class="status-badge ${resolved ? 'status-resolved' : 'status-open'}">
+          ${resolved ? '✓ Resolved' : '● Open'}
+        </span>
+      </div>
+      <span class="complaint-category ${catClass}">${esc(c.category)}</span>
+      <div class="complaint-meta">
+        <div class="complaint-meta-item">👤 <strong>${esc(c.studentName)}</strong></div>
+        <div class="complaint-meta-item">🏠 Room <strong>${c.roomNumber}</strong></div>
+        <div class="complaint-meta-item">🏢 ${esc(c.hostelBlock)}</div>
+      </div>
+      <div class="complaint-desc">${esc(c.description) || '<em style="color:var(--text-muted)">No description provided.</em>'}</div>
+      <div class="complaint-card-footer">
+        <div>
+          <div class="complaint-date">${dateStr} at ${timeStr}</div>
+          ${resolvedAt}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${!resolved ? `<button class="btn-resolve" data-id="${c._id}">✓ Resolved</button>` : ''}
+          <button class="btn-delete-complaint" data-id="${c._id}">Delete</button>
+        </div>
+      </div>
+    `;
+
+    // Resolve button
+    const resolveBtn = card.querySelector('.btn-resolve');
+    if (resolveBtn) {
+      resolveBtn.addEventListener('click', async () => {
+        resolveBtn.disabled = true;
+        resolveBtn.textContent = 'Resolving...';
+        try {
+          await apiPatch(`/complaints/${c._id}/resolve`);
+          showToast(`Complaint "${c.title}" marked as resolved.`, 'success');
+          loadComplaints();
+        } catch (ex) {
+          resolveBtn.disabled = false;
+          resolveBtn.textContent = '✓ Resolved';
+          showToast(ex.message || 'Could not resolve complaint.', 'error');
+        }
+      });
+    }
+
+    // Delete button
+    card.querySelector('.btn-delete-complaint').addEventListener('click', async () => {
+      if (!confirm(`Delete complaint "${c.title}"?`)) return;
+      try {
+        await apiDelete(`/complaints/${c._id}`);
+        showToast('Complaint deleted.', 'info');
+        loadComplaints();
+      } catch (ex) { showToast(ex.message || 'Could not delete.', 'error'); }
+    });
+
+    return card;
+  }
+
+  // Filter tabs
+  document.getElementById('complaintFilter')?.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.getElementById('complaintFilter').querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      complaintFilter = tab.dataset.filter;
+      renderComplaints();
+    });
+  });
+
+  // Search
+  let complaintSearchTimer;
+  complaintSearch?.addEventListener('input', () => {
+    clearTimeout(complaintSearchTimer);
+    complaintSearchTimer = setTimeout(renderComplaints, 200);
+  });
+
   // ── Init ──────────────────────────────────────────────────────────────────
   updateNav();
   initBlurText();
@@ -1273,5 +1421,6 @@
   loadStudents();
   loadAttendance();
   loadViolations();
+  loadComplaints();
 
 })();

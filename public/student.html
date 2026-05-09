@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RoomEase Student Portal — Raise queries, report room issues, and track complaints." />
+  <title>RoomEase - Student Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Student portal specific overrides */
+    .student-hero {
+      position: relative; padding: 100px 24px 60px; text-align: center;
+      border-bottom: 1px solid var(--bg-border);
+    }
+    .student-hero .hero-badge { background: rgba(245,166,35,0.12); border-color: rgba(245,166,35,0.25); color: var(--accent-amber); }
+    .student-hero .hero-title { font-size: clamp(36px, 6vw, 60px); }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      padding: 6px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--bg-border); transition: all var(--transition);
+      position: absolute; top: 80px; left: 24px; text-decoration: none;
+    }
+    .back-link:hover { color: var(--text-primary); border-color: var(--bg-border-mid); background: var(--bg-raised); }
+
+    .student-main { padding: 60px 0 100px; }
+    .student-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 40px; align-items: start; }
+
+    /* Complaint form card */
+    .complaint-form-card {
+      background: var(--bg-surface); border: 1px solid var(--bg-border);
+      border-radius: var(--radius-xl); padding: 36px;
+      box-shadow: var(--shadow-card); position: sticky; top: 90px;
+    }
+
+    /* My complaints section */
+    .my-complaints-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .my-complaints-title { font-size: 20px; font-weight: 600; }
+    .my-complaints-count {
+      font-size: 12px; font-weight: 600; padding: 4px 12px;
+      border-radius: 100px; background: rgba(245,166,35,0.1);
+      color: var(--accent-amber); border: 1px solid rgba(245,166,35,0.2);
+    }
+
+    @media (max-width: 860px) {
+      .student-grid { grid-template-columns: 1fr; }
+      .complaint-form-card { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="lightRaysCanvas"></canvas>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-mark"></div>
+        <span class="brand-name">RoomEase</span>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/" class="nav-link">← Home</a></li>
+        <li><a href="#raise" class="nav-link active">Raise Complaint</a></li>
+        <li><a href="#my-complaints" class="nav-link">My Complaints</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="student-hero" id="hero">
+    <a href="/" class="back-link">← Back to Home</a>
+    <div class="hero-badge">Student Portal</div>
+    <h1 class="hero-title" style="font-family:var(--font-cursive);color:#fff;text-shadow:0 8px 32px rgba(255,255,255,0.35)">Student Complaint Portal</h1>
+    <p class="hero-subtitle" style="margin:16px auto 0;text-align:center">
+      Raise queries, report room issues, amenity problems, or any discrepancies. Track your complaint status in real-time.
+    </p>
+  </section>
+
+  <!-- Main Content -->
+  <section class="student-main" id="raise">
+    <div class="container">
+      <div class="student-grid">
+        <!-- Left: Complaint Form -->
+        <div class="complaint-form-card">
+          <h3 class="form-title" style="color:var(--accent-amber)">📝 Raise a Complaint</h3>
+          <form id="complaintForm" novalidate>
+            <div class="form-group">
+              <label for="cStudentName" class="form-label">Your Full Name</label>
+              <input type="text" id="cStudentName" class="form-input" placeholder="e.g. Rahul Sharma" required />
+              <span class="field-error" id="cNameError"></span>
+            </div>
+            <div class="form-group">
+              <label for="cRoomNumber" class="form-label">Room Number</label>
+              <input type="number" id="cRoomNumber" class="form-input" placeholder="e.g. 301" min="1" required />
+              <span class="field-error" id="cRoomError"></span>
+            </div>
+            <div class="form-group">
+              <label for="cHostelBlock" class="form-label">Hostel Block</label>
+              <select id="cHostelBlock" class="form-input" required>
+                <option value="">-- Select Block --</option>
+                <option value="Aryabhatta Hostel">Aryabhatta Hostel</option>
+                <option value="Fresher's Block">Fresher's Block</option>
+                <option value="Ratan Tata Block">Ratan Tata Block</option>
+                <option value="MSR Boys Home">MSR Boys Home</option>
+                <option value="MSR Gokula">MSR Gokula</option>
+                <option value="MSR Gowramma">MSR Gowramma</option>
+                <option value="White Lotus">White Lotus</option>
+                <option value="North Point Girls Hostel 1 and 2">North Point Girls Hostel 1 and 2</option>
+                <option value="MSR NIMS Living Girls Hostel">MSR NIMS Living Girls Hostel</option>
+                <option value="MSR Girls Hostel">MSR Girls Hostel</option>
+              </select>
+              <span class="field-error" id="cBlockError"></span>
+            </div>
+            <div class="form-group">
+              <label for="cCategory" class="form-label">Category</label>
+              <select id="cCategory" class="form-input" required>
+                <option value="">-- Select Category --</option>
+                <option value="Room Issue">🏠 Room Issue</option>
+                <option value="Amenity">⚡ Amenity Problem</option>
+                <option value="Query">❓ Query</option>
+                <option value="Discrepancy">⚠️ Discrepancy</option>
+                <option value="Other">📋 Other</option>
+              </select>
+              <span class="field-error" id="cCatError"></span>
+            </div>
+            <div class="form-group">
+              <label for="cTitle" class="form-label">Complaint Title</label>
+              <input type="text" id="cTitle" class="form-input" placeholder="e.g. Broken fan in room" required />
+              <span class="field-error" id="cTitleError"></span>
+            </div>
+            <div class="form-group">
+              <label for="cDescription" class="form-label">Description (optional)</label>
+              <textarea id="cDescription" class="form-input form-textarea" placeholder="Describe your issue in detail..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-full" id="cSubmitBtn" style="background:var(--accent-amber);color:#111;box-shadow:0 4px 14px rgba(245,166,35,0.25)">
+              <span class="btn-label">Submit Complaint</span>
+              <span class="btn-loader" hidden></span>
+            </button>
+          </form>
+          <div class="form-feedback" id="cFormFeedback" hidden>
+            <div class="feedback-icon"></div>
+            <div class="feedback-text" id="cFeedbackText"></div>
+          </div>
+        </div>
+
+        <!-- Right: My Complaints -->
+        <div id="my-complaints">
+          <div class="my-complaints-header">
+            <h2 class="my-complaints-title">📋 My Complaints</h2>
+            <span class="my-complaints-count" id="myComplaintsCount">0 complaints</span>
+          </div>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">
+            Complaints matching your name & room number will appear here after you submit one.
+          </p>
+          <div class="filter-tabs" id="myComplaintFilter" style="margin-bottom:20px">
+            <button class="filter-tab active" data-filter="all">All</button>
+            <button class="filter-tab" data-filter="open">Open</button>
+            <button class="filter-tab" data-filter="resolved">Resolved</button>
+          </div>
+          <div class="loading-state" id="myComplaintsLoading" style="display:none">
+            <div class="spinner"></div>
+            <p>Loading your complaints...</p>
+          </div>
+          <div class="empty-state" id="myComplaintsEmpty">
+            <div class="empty-icon"></div>
+            <h3>No complaints yet</h3>
+            <p>Fill the form on the left to raise your first complaint.</p>
+          </div>
+          <div class="complaints-grid" id="myComplaintsGrid" style="grid-template-columns:1fr"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="footer-section">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="brand-mark"></div>
+          <span class="brand-name">RoomEase</span>
+        </div>
+        <p class="footer-tagline">Student Complaint Portal — RoomEase Hostel Management System</p>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">Built with care. Deployed with precision.</span>
+        <div class="footer-stack">
+          <span class="stack-tag">Node.js</span>
+          <span class="stack-tag">Express</span>
+          <span class="stack-tag">MongoDB</span>
+          <span class="stack-tag">Docker</span>
+          <span class="stack-tag">Kubernetes</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:3000'
+      : window.location.origin;
+
+    let myFilter = 'all';
+    let savedName = localStorage.getItem('roomease_student_name') || '';
+    let savedRoom = localStorage.getItem('roomease_student_room') || '';
+
+    // Pre-fill from localStorage
+    if (savedName) document.getElementById('cStudentName').value = savedName;
+    if (savedRoom) document.getElementById('cRoomNumber').value = savedRoom;
+
+    // ── Navbar ─────────────────────────────────────────────────────────────
+    const navbar = document.getElementById('navbar');
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+    hamburger.addEventListener('click', () => navLinks.classList.toggle('mobile-open'));
+    navLinks.querySelectorAll('.nav-link').forEach(l => l.addEventListener('click', () => navLinks.classList.remove('mobile-open')));
+
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.getElementById(a.getAttribute('href').slice(1));
+        if (target) { e.preventDefault(); window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 72, behavior: 'smooth' }); }
+      });
+    });
+
+    // ── Utilities ──────────────────────────────────────────────────────────
+    function esc(str) { const d = document.createElement('div'); d.appendChild(document.createTextNode(String(str ?? ''))); return d.innerHTML; }
+
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `<div class="toast-dot"></div><span>${esc(message)}</span>`;
+      document.getElementById('toastContainer').appendChild(toast);
+      setTimeout(() => { toast.classList.add('removing'); setTimeout(() => toast.remove(), 300); }, 4500);
+    }
+
+    function clearErr(errEl, inputEl) { errEl.textContent = ''; inputEl.classList.remove('error'); }
+    function setErr(errEl, inputEl, msg) { errEl.textContent = msg; inputEl.classList.add('error'); }
+    function setBtnLoading(btn, loading, label) {
+      btn.disabled = loading;
+      const l = btn.querySelector('.btn-label'); if (l) l.textContent = label;
+      const s = btn.querySelector('.btn-loader'); if (s) s.hidden = !loading;
+    }
+
+    // ── Complaint Form ────────────────────────────────────────────────────
+    const form = document.getElementById('complaintForm');
+    const els = {
+      name: document.getElementById('cStudentName'),
+      room: document.getElementById('cRoomNumber'),
+      block: document.getElementById('cHostelBlock'),
+      cat: document.getElementById('cCategory'),
+      title: document.getElementById('cTitle'),
+      desc: document.getElementById('cDescription'),
+    };
+    const errs = {
+      name: document.getElementById('cNameError'),
+      room: document.getElementById('cRoomError'),
+      block: document.getElementById('cBlockError'),
+      cat: document.getElementById('cCatError'),
+      title: document.getElementById('cTitleError'),
+    };
+    const submitBtn = document.getElementById('cSubmitBtn');
+    const feedback = document.getElementById('cFormFeedback');
+    const feedbackText = document.getElementById('cFeedbackText');
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      Object.keys(errs).forEach(k => clearErr(errs[k], els[k]));
+      feedback.hidden = true;
+
+      const name = els.name.value.trim();
+      const room = parseInt(els.room.value, 10);
+      const block = els.block.value;
+      const cat = els.cat.value;
+      const title = els.title.value.trim();
+      const desc = els.desc.value.trim();
+      let hasErr = false;
+
+      if (!name || name.length < 2) { setErr(errs.name, els.name, 'Enter your full name.'); hasErr = true; }
+      if (!els.room.value || isNaN(room) || room < 1) { setErr(errs.room, els.room, 'Enter a valid room number.'); hasErr = true; }
+      if (!block) { setErr(errs.block, els.block, 'Select your hostel block.'); hasErr = true; }
+      if (!cat) { setErr(errs.cat, els.cat, 'Select a category.'); hasErr = true; }
+      if (!title || title.length < 3) { setErr(errs.title, els.title, 'Provide a short title (at least 3 chars).'); hasErr = true; }
+      if (hasErr) return;
+
+      setBtnLoading(submitBtn, true, 'Submitting...');
+      try {
+        const res = await fetch(`${API_BASE}/complaints`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentName: name, roomNumber: room, hostelBlock: block, category: cat, title, description: desc })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Server error');
+
+        // Save for future + auto-load
+        localStorage.setItem('roomease_student_name', name);
+        localStorage.setItem('roomease_student_room', String(room));
+        savedName = name; savedRoom = String(room);
+
+        feedback.hidden = false;
+        feedback.classList.remove('error-state');
+        feedback.querySelector('.feedback-icon').classList.remove('error-icon');
+        feedbackText.textContent = `Complaint "${data.title}" submitted successfully! The admin team will review it.`;
+        showToast('Complaint submitted!', 'success');
+
+        els.cat.value = '';
+        els.title.value = '';
+        els.desc.value = '';
+
+        loadMyComplaints();
+      } catch (ex) {
+        feedback.hidden = false;
+        feedback.classList.add('error-state');
+        feedback.querySelector('.feedback-icon').classList.add('error-icon');
+        feedbackText.textContent = ex.message || 'Could not submit complaint.';
+        showToast(ex.message || 'Submission failed.', 'error');
+      } finally {
+        setBtnLoading(submitBtn, false, 'Submit Complaint');
+      }
+    });
+
+    // ── My Complaints ─────────────────────────────────────────────────────
+    const myLoading = document.getElementById('myComplaintsLoading');
+    const myEmpty = document.getElementById('myComplaintsEmpty');
+    const myGrid = document.getElementById('myComplaintsGrid');
+    const myCount = document.getElementById('myComplaintsCount');
+
+    async function loadMyComplaints() {
+      if (!savedName || !savedRoom) {
+        myEmpty.querySelector('h3').textContent = 'Submit a complaint first';
+        myEmpty.querySelector('p').textContent = 'Your complaints will appear here after submission.';
+        myEmpty.style.display = 'flex';
+        myGrid.innerHTML = '';
+        myCount.textContent = '0 complaints';
+        return;
+      }
+
+      myLoading.style.display = 'flex';
+      myEmpty.style.display = 'none';
+      myGrid.innerHTML = '';
+
+      try {
+        const res = await fetch(`${API_BASE}/complaints/mine?studentName=${encodeURIComponent(savedName)}&roomNumber=${savedRoom}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        renderMyComplaints(data);
+      } catch {
+        myLoading.style.display = 'none';
+        myEmpty.style.display = 'flex';
+        myEmpty.querySelector('h3').textContent = 'Could not load complaints';
+        myEmpty.querySelector('p').textContent = 'Check your connection and try again.';
+      }
+    }
+
+    function renderMyComplaints(complaints) {
+      myLoading.style.display = 'none';
+
+      let records = [...complaints];
+      if (myFilter === 'open') records = records.filter(c => c.status === 'open');
+      else if (myFilter === 'resolved') records = records.filter(c => c.status === 'resolved');
+
+      const openCount = complaints.filter(c => c.status === 'open').length;
+      myCount.textContent = `${complaints.length} total · ${openCount} open`;
+
+      if (records.length === 0) {
+        myGrid.innerHTML = '';
+        myEmpty.style.display = 'flex';
+        myEmpty.querySelector('h3').textContent = myFilter !== 'all' ? `No ${myFilter} complaints` : 'No complaints yet';
+        myEmpty.querySelector('p').textContent = 'Submit a complaint using the form.';
+        return;
+      }
+
+      myEmpty.style.display = 'none';
+      myGrid.innerHTML = '';
+      records.forEach((c, i) => {
+        const card = document.createElement('div');
+        const resolved = c.status === 'resolved';
+        card.className = `complaint-card${resolved ? ' card-resolved' : ''}`;
+        card.style.animationDelay = `${i * 0.04}s`;
+
+        const dt = new Date(c.createdAt);
+        const dateStr = dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timeStr = dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+        const catClass = {
+          'Room Issue': 'category-room', 'Amenity': 'category-amenity',
+          'Query': 'category-query', 'Discrepancy': 'category-disc', 'Other': 'category-other'
+        }[c.category] || 'category-other';
+
+        const resolvedAt = c.resolvedAt
+          ? `<div class="resolved-at-note">✓ Resolved on ${new Date(c.resolvedAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</div>`
+          : '';
+
+        card.innerHTML = `
+          <div class="complaint-card-header">
+            <div class="complaint-title">${esc(c.title)}</div>
+            <span class="status-badge ${resolved ? 'status-resolved' : 'status-open'}">
+              ${resolved ? '✓ Resolved' : '● Open'}
+            </span>
+          </div>
+          <span class="complaint-category ${catClass}">${esc(c.category)}</span>
+          <div class="complaint-desc">${esc(c.description) || '<em style="color:var(--text-muted)">No description provided.</em>'}</div>
+          <div class="complaint-card-footer">
+            <div>
+              <div class="complaint-date">${dateStr} at ${timeStr}</div>
+              ${resolvedAt}
+            </div>
+            <div></div>
+          </div>
+        `;
+        myGrid.appendChild(card);
+      });
+
+      // Store all complaints for filtering
+      window._myComplaints = complaints;
+    }
+
+    // Filter tabs
+    document.getElementById('myComplaintFilter').querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.getElementById('myComplaintFilter').querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        myFilter = tab.dataset.filter;
+        if (window._myComplaints) renderMyComplaints(window._myComplaints);
+      });
+    });
+
+    // ── LightRays Background ──────────────────────────────────────────────
+    function initLightRays() {
+      const canvas = document.getElementById('lightRaysCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; }
+      window.addEventListener('resize', resize); resize();
+      const rays = [];
+      for (let i = 0; i < 35; i++) {
+        rays.push({
+          angle: Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.8,
+          width: Math.random() * 0.15 + 0.02,
+          speed: (Math.random() - 0.5) * 0.0015,
+          length: Math.random() * height * 0.6 + height * 0.8,
+          opacity: Math.random() * 0.06 + 0.015
+        });
+      }
+      let mouseX = width / 2, mouseY = 0, cX = width / 2, cY = -50;
+      window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        cX += ((width / 2 + (mouseX - width / 2) * 0.1) - cX) * 0.05;
+        cY += ((-50 + mouseY * 0.05) - cY) * 0.05;
+        rays.forEach(r => {
+          r.angle += r.speed;
+          const eX = cX + Math.cos(r.angle) * r.length, eY = cY + Math.sin(r.angle) * r.length;
+          const g = ctx.createLinearGradient(cX, cY, eX, eY);
+          g.addColorStop(0, `rgba(245, 166, 35, ${r.opacity})`);
+          g.addColorStop(1, 'rgba(245, 166, 35, 0)');
+          ctx.beginPath(); ctx.moveTo(cX, cY);
+          ctx.lineTo(cX + Math.cos(r.angle - r.width) * r.length, cY + Math.sin(r.angle - r.width) * r.length);
+          ctx.lineTo(cX + Math.cos(r.angle + r.width) * r.length, cY + Math.sin(r.angle + r.width) * r.length);
+          ctx.closePath(); ctx.fillStyle = g; ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────
+    initLightRays();
+    loadMyComplaints();
+  })();
+  </script>
+</body>
+</html>

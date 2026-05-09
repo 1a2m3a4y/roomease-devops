@@ -32,6 +32,8 @@
         <li><a href="#directory" class="nav-link">Directory</a></li>
         <li><a href="#attendance" class="nav-link">Attendance</a></li>
         <li><a href="#violations" class="nav-link">Violations</a></li>
+        <li><a href="#complaints" class="nav-link">Complaints</a></li>
+        <li><a href="/student" class="nav-link nav-link-student" target="_blank">Student Portal &#8599;</a></li>
       </ul>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -356,7 +358,42 @@
     </div>
   </section>
 
-  <!-- Footer -->
+  <!-- Complaints Section -->
+  <section class="complaints-section" id="complaints">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Student Complaints</div>
+        <h2 class="section-title blur-text">Queries, Discrepancies &amp; Complaints</h2>
+        <p class="section-desc">Manage complaints raised by students regarding rooms, amenities, and hostel discrepancies. Mark them resolved once addressed.</p>
+      </div>
+      <div class="attendance-controls">
+        <a href="/student" target="_blank" class="btn btn-student-portal">&#8599; Student Portal</a>
+        <div class="search-wrapper">
+          <svg class="search-icon" width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <input type="text" id="complaintSearch" class="search-input" placeholder="Filter by name, room, or category..." />
+        </div>
+        <div class="filter-tabs" id="complaintFilter">
+          <button class="filter-tab active" data-filter="all">All</button>
+          <button class="filter-tab" data-filter="open">Open</button>
+          <button class="filter-tab" data-filter="resolved">Resolved</button>
+        </div>
+      </div>
+      <div class="loading-state" id="complaintsLoading">
+        <div class="spinner"></div>
+        <p>Fetching complaints...</p>
+      </div>
+      <div class="empty-state" id="complaintsEmpty" hidden>
+        <div class="empty-icon"></div>
+        <h3>No complaints yet</h3>
+        <p>Students can raise complaints via the Student Portal.</p>
+        <a href="/student" target="_blank" class="btn btn-primary">Open Student Portal</a>
+      </div>
+      <div class="complaints-grid" id="complaintsGrid"></div>
+    </div>
+  </section>
   <footer class="footer" id="footer-section">
     <div class="container">
       <div class="footer-top">
@@ -364,7 +401,7 @@
           <div class="brand-mark"></div>
           <span class="brand-name">RoomEase</span>
         </div>
-        <p class="footer-tagline">A DevSecOps project demonstrating end-to-end CI/CD with Node.js, Docker, and MongoDB.
+        <p class="footer-tagline">A DevSecOps project demonstrating end-to-end CI/CD with Node.js, Docker, MongoDB, and Kubernetes.
         </p>
       </div>
       <div class="footer-bottom">
@@ -374,6 +411,7 @@
           <span class="stack-tag">Express</span>
           <span class="stack-tag">MongoDB</span>
           <span class="stack-tag">Docker</span>
+          <span class="stack-tag">Kubernetes</span>
           <span class="stack-tag">GitHub Actions</span>
         </div>
       </div>
