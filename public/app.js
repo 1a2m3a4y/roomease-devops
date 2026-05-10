@@ -129,6 +129,7 @@
         renderStudents();
         renderAttendance();
         renderViolations();
+        renderComplaints();
         updateStudentDropdowns();
       });
     }
