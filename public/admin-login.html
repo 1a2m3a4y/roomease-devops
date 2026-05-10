@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RoomEase Admin Login - Secure access to the hostel management dashboard." />
+  <title>RoomEase - Admin Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0a0b0e;
+      --bg-surface: #111318;
+      --bg-raised: #181b22;
+      --bg-border: rgba(255,255,255,0.07);
+      --text-primary: #f0f2f5;
+      --text-secondary: #8b92a5;
+      --text-muted: #555d70;
+      --accent-blue: #4f7cff;
+      --accent-blue-dim: rgba(79,124,255,0.15);
+      --accent-purple: #9b7dff;
+      --accent-red: #ef4444;
+      --accent-red-dim: rgba(239,68,68,0.12);
+      --accent-green: #34c97a;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.3);
+      --font: 'Outfit', system-ui, -apple-system, sans-serif;
+      --font-cursive: 'Dancing Script', cursive;
+      --transition: 0.22s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Background */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image: linear-gradient(var(--bg-border) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--bg-border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    .glow { position: fixed; border-radius: 50%; filter: blur(120px); z-index: 0; }
+    .glow-1 { width: 500px; height: 500px; top: -100px; left: -100px; background: rgba(79,124,255,0.12); animation: gFloat 8s ease-in-out infinite; }
+    .glow-2 { width: 400px; height: 400px; bottom: -80px; right: -80px; background: rgba(155,125,255,0.1); animation: gFloat 10s ease-in-out infinite reverse; }
+    @keyframes gFloat { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.05); } }
+
+    /* Container */
+    .login-container {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 420px;
+      padding: 24px;
+    }
+
+    /* Brand */
+    .brand {
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; margin-bottom: 12px;
+    }
+    .brand-mark {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(99,102,241,0.35);
+    }
+    .brand-name {
+      font-family: var(--font-cursive);
+      font-size: 44px; font-weight: 700;
+      background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.65) 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-badge {
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 32px;
+    }
+    .page-badge span {
+      display: inline-block; padding: 5px 14px;
+      background: var(--accent-blue-dim);
+      border: 1px solid rgba(79,124,255,0.25);
+      border-radius: 100px; font-size: 12px; font-weight: 500;
+      color: var(--accent-blue); letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Card */
+    .login-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-xl);
+      padding: 40px 32px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .login-title {
+      font-size: 22px; font-weight: 700;
+      letter-spacing: -0.02em;
+      text-align: center; margin-bottom: 4px;
+    }
+    .login-subtitle {
+      font-size: 14px; color: var(--text-secondary);
+      text-align: center; margin-bottom: 28px;
+    }
+
+    /* Shield icon */
+    .shield-icon {
+      width: 56px; height: 56px;
+      background: var(--accent-blue-dim);
+      border-radius: var(--radius-lg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; margin: 0 auto 20px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px; letter-spacing: 0.02em;
+    }
+    .form-input {
+      width: 100%; padding: 12px 16px;
+      background: var(--bg-raised);
+      border: 1px solid var(--bg-border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 15px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+    }
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+    .form-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(79,124,255,0.15);
+    }
+    .form-input.error {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 0 3px var(--accent-red-dim);
+    }
+
+    /* Password toggle */
+    .password-wrapper {
+      position: relative;
+    }
+    .password-wrapper .form-input {
+      padding-right: 48px;
+    }
+    .toggle-pass {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--text-muted); cursor: pointer;
+      font-size: 18px; padding: 4px;
+      transition: color var(--transition);
+    }
+    .toggle-pass:hover { color: var(--text-secondary); }
+
+    /* Error message */
+    .error-msg {
+      background: var(--accent-red-dim);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 13px; color: #fca5a5;
+      margin-bottom: 18px;
+      display: none;
+      align-items: center; gap: 8px;
+    }
+    .error-msg.show { display: flex; }
+    .error-dot {
+      width: 6px; height: 6px;
+      background: var(--accent-red);
+      border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* Button */
+    .btn-login {
+      width: 100%; padding: 14px 24px;
+      background: var(--accent-blue);
+      color: #fff; border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font);
+      font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 14px rgba(79,124,255,0.25);
+      position: relative;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-login:hover:not(:disabled) {
+      background: #6390ff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79,124,255,0.35);
+    }
+    .btn-login:active:not(:disabled) { transform: translateY(0); }
+    .btn-login:disabled {
+      opacity: 0.65; cursor: not-allowed;
+    }
+    .btn-loader {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Back link */
+    .back-link {
+      display: block; text-align: center;
+      margin-top: 24px;
+      font-size: 13px; color: var(--text-muted);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .back-link:hover { color: var(--text-secondary); }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .anim-1 { animation: fadeUp 0.6s 0.1s ease both; }
+    .anim-2 { animation: fadeUp 0.6s 0.25s ease both; }
+    .anim-3 { animation: fadeUp 0.6s 0.4s ease both; }
+
+    /* Shake animation for error */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 50%, 90% { transform: translateX(-4px); }
+      30%, 70% { transform: translateX(4px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .login-card { padding: 32px 20px; }
+      .brand-name { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <div class="login-container">
+    <div class="brand anim-1">
+      <div class="brand-mark"></div>
+      <span class="brand-name">RoomEase</span>
+    </div>
+    <div class="page-badge anim-1"><span>Admin Authentication</span></div>
+
+    <div class="login-card anim-2">
+      <div class="shield-icon">🛡️</div>
+      <h1 class="login-title">Admin Login</h1>
+      <p class="login-subtitle">Enter your credentials to access the dashboard</p>
+
+      <div class="error-msg" id="errorMsg">
+        <div class="error-dot"></div>
+        <span id="errorText">Invalid credentials</span>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="userId" class="form-label">User ID</label>
+          <input type="text" id="userId" class="form-input" placeholder="Enter your user ID" autocomplete="username" required autofocus />
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" class="form-input" placeholder="Enter your password" autocomplete="current-password" required />
+            <button type="button" class="toggle-pass" id="togglePass" aria-label="Toggle password visibility">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login" id="loginBtn">
+          <span id="btnLabel">Sign In</span>
+        </button>
+      </form>
+    </div>
+
+    <a href="/" class="back-link anim-3">← Back to Portal Selection</a>
+  </div>
+
+  <script>
+    (() => {
+      const form    = document.getElementById('loginForm');
+      const userEl  = document.getElementById('userId');
+      const passEl  = document.getElementById('password');
+      const errBox  = document.getElementById('errorMsg');
+      const errText = document.getElementById('errorText');
+      const btn     = document.getElementById('loginBtn');
+      const btnLbl  = document.getElementById('btnLabel');
+      const toggle  = document.getElementById('togglePass');
+
+      // If already authenticated, go straight to dashboard
+      if (sessionStorage.getItem('roomease_admin_token')) {
+        window.location.replace('/admin/dashboard');
+      }
+
+      // Toggle password visibility
+      toggle.addEventListener('click', () => {
+        const isPass = passEl.type === 'password';
+        passEl.type = isPass ? 'text' : 'password';
+        toggle.textContent = isPass ? '🙈' : '👁️';
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errBox.classList.remove('show');
+        userEl.classList.remove('error');
+        passEl.classList.remove('error');
+
+        const uid  = userEl.value.trim();
+        const pass = passEl.value;
+
+        if (!uid) { showError('Please enter your User ID'); userEl.classList.add('error'); return; }
+        if (!pass) { showError('Please enter your password'); passEl.classList.add('error'); return; }
+
+        // Loading state
+        btn.disabled = true;
+        btnLbl.innerHTML = '<div class="btn-loader"></div> Authenticating...';
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid, password: pass })
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            sessionStorage.setItem('roomease_admin_token', data.token);
+            btnLbl.textContent = '✓ Success';
+            btn.style.background = '#34c97a';
+            setTimeout(() => window.location.replace('/admin/dashboard'), 400);
+          } else {
+            showError(data.error || 'Invalid credentials');
+            shakeCard();
+          }
+        } catch {
+          showError('Network error. Please try again.');
+          shakeCard();
+        } finally {
+          btn.disabled = false;
+          if (btnLbl.textContent !== '✓ Success') {
+            btnLbl.textContent = 'Sign In';
+          }
+        }
+      });
+
+      function showError(msg) {
+        errText.textContent = msg;
+        errBox.classList.add('show');
+      }
+
+      function shakeCard() {
+        const card = document.querySelector('.login-card');
+        card.classList.add('shake');
+        setTimeout(() => card.classList.remove('shake'), 500);
+      }
+    })();
+  </script>
+</body>
+</html>

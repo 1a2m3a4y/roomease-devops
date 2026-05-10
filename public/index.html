@@ -16,6 +16,18 @@
 </head>
 
 <body>
+  <!-- Auth guard: redirect to login if not authenticated -->
+  <script>
+    (function() {
+      const token = sessionStorage.getItem('roomease_admin_token');
+      if (!token) { window.location.replace('/admin'); return; }
+      // Verify token with server (non-blocking — page renders while checking)
+      fetch('/api/admin/verify', { headers: { 'x-admin-token': token } })
+        .then(r => { if (!r.ok) { sessionStorage.removeItem('roomease_admin_token'); window.location.replace('/admin'); } })
+        .catch(() => {});
+    })();
+  </script>
+
   <!-- LightRays Canvas Background -->
   <canvas id="lightRaysCanvas"></canvas>
 
@@ -34,6 +46,7 @@
         <li><a href="#violations" class="nav-link">Violations</a></li>
         <li><a href="#complaints" class="nav-link">Complaints</a></li>
         <li><a href="/student" class="nav-link nav-link-student" target="_blank">Student Portal &#8599;</a></li>
+        <li><a href="#" class="nav-link nav-link-logout" id="logoutBtn" onclick="(async()=>{const t=sessionStorage.getItem('roomease_admin_token');if(t)await fetch('/api/admin/logout',{method:'POST',headers:{'x-admin-token':t}}).catch(()=>{});sessionStorage.removeItem('roomease_admin_token');window.location.replace('/admin')})();return false;">Logout ⏻</a></li>
       </ul>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>

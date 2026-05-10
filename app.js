@@ -82,13 +82,49 @@ app.get("/readyz", (req, res) => {
   res.status(503).json({ status: "not ready", db: "disconnected" });
 });
 
+// ── Admin authentication ──────────────────────────────────────────────────
+const ADMIN_UID  = process.env.ADMIN_UID  || "uid1234";
+const ADMIN_PASS = process.env.ADMIN_PASS || "maa@12345";
+const adminTokens = new Set(); // active session tokens
+
+app.post("/api/admin/login", (req, res) => {
+  const { uid, password } = req.body;
+  if (uid === ADMIN_UID && password === ADMIN_PASS) {
+    const token = require("crypto").randomUUID();
+    adminTokens.add(token);
+    // Auto-expire token after 8 hours
+    setTimeout(() => adminTokens.delete(token), 8 * 60 * 60 * 1000);
+    return res.json({ success: true, token });
+  }
+  res.status(401).json({ success: false, error: "Invalid User ID or Password" });
+});
+
+app.get("/api/admin/verify", (req, res) => {
+  const token = req.headers["x-admin-token"];
+  if (token && adminTokens.has(token)) {
+    return res.json({ valid: true });
+  }
+  res.status(401).json({ valid: false });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+  const token = req.headers["x-admin-token"];
+  if (token) adminTokens.delete(token);
+  res.json({ success: true });
+});
+
 // ── Frontend ──────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "landing.html"));
 });
 
-// Admin portal
+// Admin login page
 app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin-login.html"));
+});
+
+// Admin dashboard (served to anyone — auth is checked client-side via token)
+app.get("/admin/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 

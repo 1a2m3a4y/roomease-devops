@@ -710,6 +710,18 @@ select.form-input option { background: var(--bg-raised); }
   border-color: rgba(245,166,35,0.4) !important;
 }
 
+/* Logout nav link — red accent */
+.nav-link-logout {
+  color: var(--accent-red) !important;
+  border: 1px solid rgba(255,90,90,0.25);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px !important;
+}
+.nav-link-logout:hover {
+  background: var(--accent-red-dim) !important;
+  border-color: rgba(255,90,90,0.4) !important;
+}
+
 /* Student Portal button in controls bar */
 .btn-student-portal {
   display: inline-flex; align-items: center; gap: 6px;
