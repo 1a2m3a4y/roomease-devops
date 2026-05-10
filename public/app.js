@@ -1293,7 +1293,16 @@
     complaintsLoading.style.display = 'none';
     const q = (complaintSearch?.value || '').toLowerCase().trim();
 
-    let records = [...allComplaints];
+    // ── Filter by selected hostel block (same as violations) ──────────────
+    if (globalCollegeFilter && (!globalCollegeFilter.value || !globalBlockFilter.value)) {
+      complaintsGrid.innerHTML = '';
+      complaintsEmpty.hidden = false;
+      setEmptyMsg(complaintsEmpty, 'Select Hostel Block', 'Please select a college and hostel block to view complaints.');
+      return;
+    }
+
+    let records = allComplaints.filter(c => c.hostelBlock === globalBlockFilter.value);
+
     if (complaintFilter === 'open')     records = records.filter(c => c.status === 'open');
     else if (complaintFilter === 'resolved') records = records.filter(c => c.status === 'resolved');
     if (q) records = records.filter(c =>
@@ -1308,7 +1317,7 @@
       complaintsEmpty.hidden = false;
       setEmptyMsg(complaintsEmpty,
         q ? 'No complaints found' : 'No complaints yet',
-        q ? 'Try a different search term.' : 'Students can raise complaints via the Student Portal.'
+        q ? 'Try a different search term.' : 'No complaints recorded for this block.'
       );
       return;
     }
