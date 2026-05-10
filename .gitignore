@@ -1,2 +1,30 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Environment (secrets)
 .env
+.env.local
+.env.*.local
+
+# Build / Coverage
+dist/
+coverage/
+*.tgz
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docker
+docker-compose.override.yml

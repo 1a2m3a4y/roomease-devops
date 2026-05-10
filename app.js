@@ -1,12 +1,36 @@
 require("dotenv").config();
-const express  = require("express");
-const mongoose = require("mongoose");
-const cors     = require("cors");
-const path     = require("path");
+const express    = require("express");
+const mongoose   = require("mongoose");
+const cors       = require("cors");
+const path       = require("path");
+const helmet     = require("helmet");
+const morgan     = require("morgan");
+const rateLimit  = require("express-rate-limit");
 
 const app = express();
 
-app.use(express.json());
+// ── Security headers ──────────────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: false,   // Allow inline scripts in static HTML
+  crossOriginEmbedderPolicy: false
+}));
+
+// ── Request logging ───────────────────────────────────────────────────────
+const logFormat = process.env.NODE_ENV === "production" ? "combined" : "dev";
+app.use(morgan(logFormat));
+
+// ── Rate limiting ─────────────────────────────────────────────────────────
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max:      parseInt(process.env.RATE_LIMIT_MAX) || 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." }
+});
+app.use(limiter);
+
+// ── Core middleware ───────────────────────────────────────────────────────
+app.use(express.json({ limit: "1mb" }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, "public"), { index: false }));
 
@@ -30,9 +54,33 @@ function isAfterCurfew(date, h, m) {
   return mins > curfewMins || mins < morningMins;
 }
 
+// ── MongoDB connection with readiness tracking ───────────────────────────
+let isDbReady = false;
+
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log(err));
+  .then(() => {
+    isDbReady = true;
+    console.log(`[RoomEase] MongoDB connected (${process.env.NODE_ENV || "development"})`);
+  })
+  .catch(err => {
+    console.error("[RoomEase] MongoDB connection error:", err.message);
+    process.exit(1);
+  });
+
+mongoose.connection.on("disconnected", () => { isDbReady = false; });
+mongoose.connection.on("reconnected",  () => { isDbReady = true;  });
+
+// ── Health-check endpoints (used by K8s probes & Docker HEALTHCHECK) ─────
+app.get("/healthz", (req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
+});
+
+app.get("/readyz", (req, res) => {
+  if (isDbReady) {
+    return res.status(200).json({ status: "ready", db: "connected" });
+  }
+  res.status(503).json({ status: "not ready", db: "disconnected" });
+});
 
 // ── Frontend ──────────────────────────────────────────────────────────────
 app.get("/", (req, res) => {
@@ -412,5 +460,36 @@ app.delete("/complaints/:id", async (req, res) => {
   }
 });
 
+// ── Server startup with graceful shutdown ─────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const server = app.listen(PORT, () => {
+  console.log(`[RoomEase] Server running on port ${PORT}`);
+  console.log(`[RoomEase] Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`[RoomEase] Health:  http://localhost:${PORT}/healthz`);
+  console.log(`[RoomEase] Ready:   http://localhost:${PORT}/readyz`);
+});
+
+// Graceful shutdown — let K8s / Docker drain connections before killing
+const shutdown = (signal) => {
+  console.log(`\n[RoomEase] ${signal} received. Shutting down gracefully…`);
+  server.close(() => {
+    console.log("[RoomEase] HTTP server closed.");
+    mongoose.connection.close(false).then(() => {
+      console.log("[RoomEase] MongoDB connection closed.");
+      process.exit(0);
+    });
+  });
+
+  // Force exit after 10s if graceful shutdown stalls
+  setTimeout(() => {
+    console.error("[RoomEase] Forced shutdown after timeout.");
+    process.exit(1);
+  }, 10000);
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT",  () => shutdown("SIGINT"));
+
+// Export for testing
+module.exports = { app, server };

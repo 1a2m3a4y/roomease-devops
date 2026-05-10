@@ -1,0 +1,24 @@
+# ── NetworkPolicy: restrict ingress to app pods ──────────────────────────
+# Only allow traffic to port 3000 from the ingress-nginx namespace.
+# All other pod-to-pod traffic to roomease pods is denied.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: roomease-netpol
+  namespace: roomease
+  labels:
+    app: roomease
+spec:
+  podSelector:
+    matchLabels:
+      app: roomease
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 3000

@@ -1,0 +1,15 @@
+# ── PodDisruptionBudget ──────────────────────────────────────────────────
+# Ensures at least 1 pod remains available during voluntary disruptions
+# (node drains, cluster upgrades, etc.)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: roomease-pdb
+  namespace: roomease
+  labels:
+    app: roomease
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: roomease

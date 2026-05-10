@@ -5,6 +5,7 @@ metadata:
   namespace: roomease
   labels:
     app: roomease
+    version: latest
 spec:
   replicas: 2
   selector:
@@ -20,13 +21,32 @@ spec:
       labels:
         app: roomease
     spec:
+      # ── Pod anti-affinity: spread replicas across nodes ──────────────────
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: ["roomease"]
+                topologyKey: kubernetes.io/hostname
+
+      terminationGracePeriodSeconds: 30
+
       containers:
         - name: roomease
-          # ⚠️  Replace with your actual image, e.g. docker.io/youruser/roomease:latest
-          image: your-dockerhub-username/roomease:latest
+          # ⚠️  Replace with your actual image, e.g.:
+          #   ghcr.io/your-username/devsecops_project:latest
+          image: ghcr.io/your-username/devsecops_project:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
+              protocol: TCP
+
+          # ── Environment variables ──────────────────────────────────────
           env:
             - name: PORT
               valueFrom:
@@ -38,29 +58,64 @@ spec:
                 configMapKeyRef:
                   name: roomease-config
                   key: NODE_ENV
+            - name: RATE_LIMIT_WINDOW_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: roomease-config
+                  key: RATE_LIMIT_WINDOW_MS
+            - name: RATE_LIMIT_MAX
+              valueFrom:
+                configMapKeyRef:
+                  name: roomease-config
+                  key: RATE_LIMIT_MAX
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:
                   name: roomease-secret
                   key: MONGO_URI
+
+          # ── Resource limits ────────────────────────────────────────────
           resources:
             requests:
               memory: "128Mi"
-              cpu: "125m"
+              cpu: "100m"
             limits:
               memory: "256Mi"
               cpu: "250m"
+
+          # ── Security context (container level) ─────────────────────────
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+
+          # ── Probes ─────────────────────────────────────────────────────
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: 3000
             initialDelaySeconds: 15
             periodSeconds: 20
+            timeoutSeconds: 3
             failureThreshold: 3
+
           readinessProbe:
             httpGet:
-              path: /
+              path: /readyz
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 3
             failureThreshold: 3
