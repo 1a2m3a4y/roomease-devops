@@ -1,7 +1,13 @@
 ##############################################################################
-# RoomEase — Local Development Stack
+# RoomEase — Local Development Stack with Monitoring
 # Usage:  docker-compose up --build
 #         docker-compose down -v   (to also remove volumes)
+#
+# Ports:
+#   App:        http://localhost:3000
+#   Metrics:    http://localhost:3000/metrics
+#   Prometheus: http://localhost:9090
+#   Grafana:    http://localhost:3001  (admin / admin)
 ##############################################################################
 
 services:
@@ -47,8 +53,53 @@ services:
     networks:
       - roomease-net
 
+  # ── Prometheus (metrics collection) ──────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: roomease-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - roomease-net
+
+  # ── Grafana (dashboards & visualization) ─────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: roomease-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/roomease-infra.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - roomease-net
+
 volumes:
   mongo_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:

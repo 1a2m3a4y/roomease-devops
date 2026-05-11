@@ -6,6 +6,34 @@ const path       = require("path");
 const helmet     = require("helmet");
 const morgan     = require("morgan");
 const rateLimit  = require("express-rate-limit");
+const promClient = require("prom-client");
+
+// ── Prometheus Metrics ────────────────────────────────────────────────────
+const promRegister = promClient.register;
+promClient.collectDefaultMetrics({ register: promRegister, prefix: "roomease_" });
+
+const httpRequestDuration = new promClient.Histogram({
+  name: "roomease_http_request_duration_seconds",
+  help: "Duration of HTTP requests in seconds",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [0.01, 0.05, 0.1, 0.3, 0.5, 1, 2, 5]
+});
+
+const httpRequestsTotal = new promClient.Counter({
+  name: "roomease_http_requests_total",
+  help: "Total number of HTTP requests",
+  labelNames: ["method", "route", "status_code"]
+});
+
+const activeRequests = new promClient.Gauge({
+  name: "roomease_active_requests",
+  help: "Number of active HTTP requests"
+});
+
+const dbConnectionStatus = new promClient.Gauge({
+  name: "roomease_db_connected",
+  help: "MongoDB connection status (1=connected, 0=disconnected)"
+});
 
 const app = express();
 
@@ -34,6 +62,32 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, "public"), { index: false }));
 
+// ── Prometheus metrics middleware ─────────────────────────────────────────
+app.use((req, res, next) => {
+  // Skip metrics endpoint itself to avoid recursion
+  if (req.path === "/metrics") return next();
+  activeRequests.inc();
+  const end = httpRequestDuration.startTimer();
+  res.on("finish", () => {
+    const route = req.route?.path || req.path;
+    const labels = { method: req.method, route, status_code: res.statusCode };
+    end(labels);
+    httpRequestsTotal.inc(labels);
+    activeRequests.dec();
+  });
+  next();
+});
+
+// ── Prometheus /metrics endpoint ──────────────────────────────────────────
+app.get("/metrics", async (req, res) => {
+  try {
+    res.set("Content-Type", promRegister.contentType);
+    res.end(await promRegister.metrics());
+  } catch (err) {
+    res.status(500).end(err.message);
+  }
+});
+
 const Student    = require("./models/Student");
 const Attendance = require("./models/Attendance");
 const Violation  = require("./models/Violation");
@@ -60,6 +114,7 @@ let isDbReady = false;
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     isDbReady = true;
+    dbConnectionStatus.set(1);
     console.log(`[RoomEase] MongoDB connected (${process.env.NODE_ENV || "development"})`);
   })
   .catch(err => {
@@ -67,8 +122,8 @@ mongoose.connect(process.env.MONGO_URI)
     process.exit(1);
   });
 
-mongoose.connection.on("disconnected", () => { isDbReady = false; });
-mongoose.connection.on("reconnected",  () => { isDbReady = true;  });
+mongoose.connection.on("disconnected", () => { isDbReady = false; dbConnectionStatus.set(0); });
+mongoose.connection.on("reconnected",  () => { isDbReady = true;  dbConnectionStatus.set(1); });
 
 // ── Health-check endpoints (used by K8s probes & Docker HEALTHCHECK) ─────
 app.get("/healthz", (req, res) => {

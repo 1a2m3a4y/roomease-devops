@@ -1,0 +1,218 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "🟢 Application Status",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{ "type": "value", "options": { "1": { "text": "UP", "color": "green" }, "0": { "text": "DOWN", "color": "red" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "expr": "up{job=\"roomease\"}", "legendFormat": "App Status" }]
+    },
+    {
+      "title": "🗄️ MongoDB Status",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{ "type": "value", "options": { "1": { "text": "Connected", "color": "green" }, "0": { "text": "Disconnected", "color": "red" } } }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "expr": "roomease_db_connected", "legendFormat": "DB Status" }]
+    },
+    {
+      "title": "⏱️ Uptime",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": { "steps": [{ "color": "blue", "value": null }] },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "expr": "roomease_process_start_time_seconds", "legendFormat": "Start Time", "hide": true }, { "expr": "time() - roomease_process_start_time_seconds", "legendFormat": "Uptime" }]
+    },
+    {
+      "title": "📊 Active Requests",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 10 }, { "color": "red", "value": 50 }] },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "expr": "roomease_active_requests", "legendFormat": "Active" }]
+    },
+    {
+      "title": "🔢 Total Requests",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "steps": [{ "color": "blue", "value": null }] },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "expr": "sum(roomease_http_requests_total)", "legendFormat": "Total" }]
+    },
+    {
+      "title": "💾 Memory Usage",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 104857600 }, { "color": "red", "value": 209715200 }] },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [{ "expr": "roomease_process_resident_memory_bytes", "legendFormat": "RSS" }]
+    },
+    {
+      "title": "📈 Request Rate (req/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 15, "gradientMode": "scheme", "pointSize": 5, "showPoints": "auto" },
+          "color": { "mode": "palette-classic" },
+          "unit": "reqps"
+        }
+      },
+      "targets": [
+        { "expr": "sum(rate(roomease_http_requests_total[1m]))", "legendFormat": "Total" },
+        { "expr": "sum(rate(roomease_http_requests_total{status_code=~\"2..\"}[1m]))", "legendFormat": "2xx Success" },
+        { "expr": "sum(rate(roomease_http_requests_total{status_code=~\"4..\"}[1m]))", "legendFormat": "4xx Client Error" },
+        { "expr": "sum(rate(roomease_http_requests_total{status_code=~\"5..\"}[1m]))", "legendFormat": "5xx Server Error" }
+      ]
+    },
+    {
+      "title": "⏱️ Response Time (p50 / p95 / p99)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "gradientMode": "scheme" },
+          "color": { "mode": "palette-classic" },
+          "unit": "s"
+        }
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(roomease_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(roomease_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(roomease_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "title": "🧠 Memory Usage Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 20, "gradientMode": "scheme" },
+          "color": { "mode": "palette-classic" },
+          "unit": "bytes"
+        }
+      },
+      "targets": [
+        { "expr": "roomease_process_resident_memory_bytes", "legendFormat": "RSS Memory" },
+        { "expr": "roomease_nodejs_heap_size_used_bytes", "legendFormat": "Heap Used" },
+        { "expr": "roomease_nodejs_heap_size_total_bytes", "legendFormat": "Heap Total" },
+        { "expr": "roomease_nodejs_external_memory_bytes", "legendFormat": "External" }
+      ]
+    },
+    {
+      "title": "⚙️ CPU Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 15, "gradientMode": "scheme" },
+          "color": { "mode": "palette-classic" },
+          "unit": "percentunit"
+        }
+      },
+      "targets": [
+        { "expr": "rate(roomease_process_cpu_user_seconds_total[1m])", "legendFormat": "User CPU" },
+        { "expr": "rate(roomease_process_cpu_system_seconds_total[1m])", "legendFormat": "System CPU" }
+      ]
+    },
+    {
+      "title": "🔀 Requests by Route (Top 10)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 50, "stacking": { "mode": "normal" } },
+          "color": { "mode": "palette-classic" },
+          "unit": "reqps"
+        }
+      },
+      "targets": [
+        { "expr": "topk(10, sum(rate(roomease_http_requests_total[5m])) by (route))", "legendFormat": "{{route}}" }
+      ]
+    },
+    {
+      "title": "🔄 Event Loop Lag",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" },
+          "unit": "s"
+        }
+      },
+      "targets": [
+        { "expr": "roomease_nodejs_eventloop_lag_seconds", "legendFormat": "Event Loop Lag" },
+        { "expr": "roomease_nodejs_eventloop_lag_p99_seconds", "legendFormat": "p99 Lag" }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["roomease", "nodejs", "devsecops"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "Prometheus", "value": "prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "name": "DS_PROMETHEUS",
+        "query": "prometheus",
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "RoomEase — Infrastructure Monitor",
+  "uid": "roomease-infra",
+  "version": 1
+}
