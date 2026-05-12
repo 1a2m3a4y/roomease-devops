@@ -1,6 +1,68 @@
 # RoomEase CI/CD Project Report
 
-This README captures the main body of the RoomEase report and intentionally excludes the front page and the final evaluation page from the `.docx` submission.
+RoomEase is a DevSecOps-ready hostel management system built with Node.js, Express.js, MongoDB, Docker, GitHub Actions, Kubernetes, Prometheus, and Grafana. It combines practical hostel workflows with a complete delivery pipeline, making it useful both as an application project and as a CI/CD case study.
+
+This README captures the main body of the RoomEase report and intentionally excludes the front page and the final evaluation page from the `.docx` submission. A short project guide is included first for quick setup and navigation.
+
+## Project Highlights
+
+- Hostel management features for student registration, attendance, curfew tracking, complaints, violations, and fines.
+- Express.js backend with security middleware, rate limiting, structured health checks, and Prometheus metrics.
+- MongoDB and Mongoose data layer for persistent hostel records.
+- Automated CI/CD workflow using GitHub Actions for tests, audits, Docker image builds, vulnerability scanning, and Kubernetes validation.
+- Docker Compose stack for local application, database, Prometheus, and Grafana testing.
+- Kubernetes manifests for namespace, deployment, service, ingress, autoscaling, network policy, and disruption control.
+
+## Quick Start
+
+### Run with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+Useful local URLs:
+
+| Service          | URL                             |
+| ---------------- | ------------------------------- |
+| RoomEase app     | `http://localhost:3000`         |
+| Health check     | `http://localhost:3000/healthz` |
+| Readiness check  | `http://localhost:3000/readyz`  |
+| Metrics endpoint | `http://localhost:3000/metrics` |
+| Prometheus       | `http://localhost:9090`         |
+| Grafana          | `http://localhost:3001`         |
+
+Default Grafana login: `admin / admin`
+
+### Run Locally with Node.js
+
+```bash
+npm ci
+cp .env.example .env
+npm start
+```
+
+For direct Node.js execution, make sure `MONGO_URI` in `.env` points to a reachable MongoDB instance.
+
+### Run Tests
+
+```bash
+npm test
+```
+
+## Repository Structure
+
+| Path                 | Purpose                                                                       |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `app.js`             | Main Express application, API routes, middleware, health checks, and metrics. |
+| `models/`            | Mongoose schemas for RoomEase domain data.                                    |
+| `public/`            | Browser-facing HTML, CSS, and JavaScript pages.                               |
+| `tests/`             | Jest and Supertest validation for key endpoints and frontend routes.          |
+| `.github/workflows/` | GitHub Actions CI/CD pipeline configuration.                                  |
+| `Dockerfile`         | Production container image definition.                                        |
+| `docker-compose.yml` | Local multi-service development and monitoring stack.                         |
+| `k8s/`               | Kubernetes deployment and operations manifests.                               |
+| `monitoring/`        | Prometheus and Grafana configuration files.                                   |
 
 ## Introduction to CI/CD
 
@@ -20,19 +82,19 @@ The RoomEase repository uses a combination of development, automation, deploymen
 
 Rather than depending on a single platform for everything, the project follows a layered strategy. Source control and automation are handled through GitHub and GitHub Actions, artifact packaging is handled by Docker, image hosting is handled through GitHub Container Registry, deployment readiness is supported by Render and Kubernetes assets, and runtime visibility is provided through Prometheus and Grafana. This separation of concerns makes the overall system more maintainable and easier to reason about.
 
-| Tool / Platform | Role in the Project |
-| --- | --- |
-| GitHub | Acts as the central source-control platform where code, workflow files, and infrastructure definitions are versioned and collaboratively maintained. |
-| GitHub Actions | Automates testing, auditing, image build and push, security scan, Kubernetes validation, and deployment triggering whenever changes reach the main integration path. |
-| Node.js + Express.js | Provide the backend runtime and application framework that power RoomEase APIs, static page hosting, middleware, and request handling. |
-| MongoDB + Mongoose | Persist application data such as students, attendance records, complaints, and violations using schema-backed document models. |
-| Jest + Supertest | Validate health endpoints, security headers, frontend routes, and metadata APIs before deployment so regressions are identified early. |
-| Docker | Packages the application into a repeatable runtime image using a multi-stage, lightweight, non-root build process. |
-| GitHub Container Registry | Stores tagged container images produced by the pipeline, making them available as versioned deployment artifacts. |
-| Render | Provides an easy production deployment target through an automated deploy-hook based release trigger. |
-| Kubernetes | Supplies production-ready orchestration manifests including Namespace, ConfigMap, Secret, Deployment, Service, Ingress, HPA, NetworkPolicy, and PodDisruptionBudget. |
-| Prometheus + Grafana | Collect, scrape, and visualize metrics exposed by the backend, improving observability and runtime diagnostics. |
-| Docker Compose | Creates a complete local multi-service environment containing the application, MongoDB, Prometheus, and Grafana. |
+| Tool / Platform           | Role in the Project                                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub                    | Acts as the central source-control platform where code, workflow files, and infrastructure definitions are versioned and collaboratively maintained.                 |
+| GitHub Actions            | Automates testing, auditing, image build and push, security scan, Kubernetes validation, and deployment triggering whenever changes reach the main integration path. |
+| Node.js + Express.js      | Provide the backend runtime and application framework that power RoomEase APIs, static page hosting, middleware, and request handling.                               |
+| MongoDB + Mongoose        | Persist application data such as students, attendance records, complaints, and violations using schema-backed document models.                                       |
+| Jest + Supertest          | Validate health endpoints, security headers, frontend routes, and metadata APIs before deployment so regressions are identified early.                               |
+| Docker                    | Packages the application into a repeatable runtime image using a multi-stage, lightweight, non-root build process.                                                   |
+| GitHub Container Registry | Stores tagged container images produced by the pipeline, making them available as versioned deployment artifacts.                                                    |
+| Render                    | Provides an easy production deployment target through an automated deploy-hook based release trigger.                                                                |
+| Kubernetes                | Supplies production-ready orchestration manifests including Namespace, ConfigMap, Secret, Deployment, Service, Ingress, HPA, NetworkPolicy, and PodDisruptionBudget. |
+| Prometheus + Grafana      | Collect, scrape, and visualize metrics exposed by the backend, improving observability and runtime diagnostics.                                                      |
+| Docker Compose            | Creates a complete local multi-service environment containing the application, MongoDB, Prometheus, and Grafana.                                                     |
 
 The combination of these tools shows that RoomEase is not just a CRUD application. It has been organized as a delivery-capable system in which coding, validation, packaging, deployment, and observability are treated as connected responsibilities.
 
@@ -106,14 +168,14 @@ These visuals support the claim that RoomEase combines both application function
 
 The project combines multiple tools because each one serves a different stage of software delivery. A comparison is useful because it explains not just what the project uses, but why those choices are reasonable for the given engineering goals.
 
-| Area | Primary Tool | Possible Alternative | Why It Fits RoomEase |
-| --- | --- | --- | --- |
-| CI orchestration | GitHub Actions | Jenkins / GitLab CI | GitHub Actions fits naturally because the repository is already hosted on GitHub and the workflow file is easy to maintain in source control. |
-| Local runtime | Docker Compose | Manual service startup | Docker Compose is better for this project because it launches the application, database, and monitoring tools together in one reproducible command. |
-| Container registry | GHCR | Docker Hub | GHCR integrates smoothly with GitHub Actions permissions and keeps source repository and image distribution within the same ecosystem. |
-| Application deployment | Render | Railway / Fly.io / self-hosted VM | Render gives a simpler deployment path for a student project while still supporting automated release triggering. |
-| Scalable orchestration | Kubernetes | Docker Swarm / standalone containers | Kubernetes is the stronger choice when autoscaling, service abstraction, ingress, and resilience policies are required. |
-| Monitoring | Prometheus + Grafana | Hosted APM platforms | This stack suits the project because it is open-source, widely adopted, and directly compatible with Prometheus metrics emitted by the application. |
+| Area                   | Primary Tool         | Possible Alternative                 | Why It Fits RoomEase                                                                                                                                |
+| ---------------------- | -------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CI orchestration       | GitHub Actions       | Jenkins / GitLab CI                  | GitHub Actions fits naturally because the repository is already hosted on GitHub and the workflow file is easy to maintain in source control.       |
+| Local runtime          | Docker Compose       | Manual service startup               | Docker Compose is better for this project because it launches the application, database, and monitoring tools together in one reproducible command. |
+| Container registry     | GHCR                 | Docker Hub                           | GHCR integrates smoothly with GitHub Actions permissions and keeps source repository and image distribution within the same ecosystem.              |
+| Application deployment | Render               | Railway / Fly.io / self-hosted VM    | Render gives a simpler deployment path for a student project while still supporting automated release triggering.                                   |
+| Scalable orchestration | Kubernetes           | Docker Swarm / standalone containers | Kubernetes is the stronger choice when autoscaling, service abstraction, ingress, and resilience policies are required.                             |
+| Monitoring             | Prometheus + Grafana | Hosted APM platforms                 | This stack suits the project because it is open-source, widely adopted, and directly compatible with Prometheus metrics emitted by the application. |
 
 These comparisons show that the RoomEase stack balances practicality and engineering maturity. The project uses approachable tools where simplicity is valuable and more advanced tools where scalability, security, or reliability justify the added complexity.
 
