@@ -127,6 +127,14 @@ def set_table_cell_text(cell, text, *, bold=False, size=12, align=WD_ALIGN_PARAG
     format_paragraph(p, align=align)
 
 
+def set_document_margins(doc):
+    for section in doc.sections:
+        section.left_margin = Inches(0.32)
+        section.right_margin = Inches(0.76)
+        section.top_margin = Inches(0.26)
+        section.bottom_margin = Inches(0.19)
+
+
 def fill_cover_and_tables(doc):
     doc.paragraphs[4].text = "CI/CD Pipeline Implementation                      Faculty Name: Brunda G"
     for run in doc.paragraphs[4].runs:
@@ -433,6 +441,7 @@ def section_references(anchor):
 def main():
     OUTPUT_DIR.mkdir(exist_ok=True)
     doc = Document(str(TEMPLATE))
+    set_document_margins(doc)
     fill_cover_and_tables(doc)
 
     anchor = next(p for p in doc.paragraphs if p.text.strip() == "Department of Computer Science and Engineering")
