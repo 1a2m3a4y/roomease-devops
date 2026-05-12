@@ -2,8 +2,9 @@ from copy import deepcopy
 from pathlib import Path
 
 from docx import Document
+from docx.oxml.ns import qn
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
-from docx.shared import Inches, Pt
+from docx.shared import Inches, Mm, Pt
 
 
 ROOT = Path("/Users/amayranjan/Desktop/devsecops_project")
@@ -129,10 +130,15 @@ def set_table_cell_text(cell, text, *, bold=False, size=12, align=WD_ALIGN_PARAG
 
 def set_document_margins(doc):
     for section in doc.sections:
+        section.page_width = Mm(210)
+        section.page_height = Mm(297)
         section.left_margin = Inches(0.32)
         section.right_margin = Inches(0.76)
         section.top_margin = Inches(0.26)
         section.bottom_margin = Inches(0.19)
+        pg_sz = section._sectPr.pgSz
+        pg_sz.set(qn("w:w"), "11906")
+        pg_sz.set(qn("w:h"), "16838")
 
 
 def fill_cover_and_tables(doc):

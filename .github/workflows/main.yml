@@ -137,30 +137,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install kubectl
+      - name: Install kubeconform
         run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
 
       - name: Validate all K8s manifests
         run: |
           echo "🔍 Validating Kubernetes manifests..."
           ERRORS=0
-
-          # Apply namespace first (required by other manifests)
-          echo "  ✔ Validating k8s/namespace.yaml"
-          if ! kubectl apply --dry-run=client --validate=false -f k8s/namespace.yaml 2>&1; then
-            echo "  ✘ FAILED: k8s/namespace.yaml"
-            ERRORS=$((ERRORS + 1))
-          fi
-
-          # Validate remaining manifests
           for file in k8s/*.yaml; do
-            [ "$file" = "k8s/namespace.yaml" ] && continue
-            [ "$file" = "k8s/README.md" ] && continue
             echo "  ✔ Validating $file"
-            if ! kubectl apply --dry-run=client --validate=false -f "$file" 2>&1; then
+            if ! kubeconform -strict -summary -output text "$file" 2>&1; then
               echo "  ✘ FAILED: $file"
               ERRORS=$((ERRORS + 1))
             fi
