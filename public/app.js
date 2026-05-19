@@ -320,6 +320,9 @@
 
     const initial    = student.name.charAt(0).toUpperCase();
     const colorClass = `avatar-${index % 8}`;
+    const avatarHtml = student.photoUrl
+      ? `<div class="student-avatar student-avatar-photo"><img src="${student.photoUrl}" alt="${esc(student.name)}" /></div>`
+      : `<div class="student-avatar ${colorClass}">${initial}</div>`;
     const warnCount  = student.warningCount || 0;
     const chipClass  = warnCount === 0 ? 'warning-chip-0' : warnCount === 1 ? 'warning-chip-1' : 'warning-chip-2';
     const warnLabel  = warnCount === 0
@@ -330,7 +333,7 @@
 
     card.innerHTML = `
       <div class="student-card-top">
-        <div class="student-avatar ${colorClass}">${initial}</div>
+        ${avatarHtml}
         <div class="student-info">
           <div class="student-name">${esc(student.name)}</div>
           <div class="student-room">
