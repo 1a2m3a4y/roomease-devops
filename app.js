@@ -348,7 +348,7 @@ app.post("/attendance", async (req, res) => {
         });
 
         // Send SMS notification to parent (non-blocking)
-        sendViolationAlert(student, autoViolation).catch(err => console.error('[SMS] Alert error:', err.message));
+        sendViolationAlert(student, autoViolation).catch(err => console.error('[Notify] Alert error:', err.message));
       }
     }
 
@@ -437,7 +437,7 @@ app.post("/violations", async (req, res) => {
     });
 
     // Send SMS notification to parent (non-blocking)
-    sendViolationAlert(student, violation).catch(err => console.error('[SMS] Alert error:', err.message));
+    sendViolationAlert(student, violation).catch(err => console.error('[Notify] Alert error:', err.message));
 
     res.json(violation);
   } catch (err) {
