@@ -273,6 +273,23 @@ app.put("/students/:id", async (req, res) => {
   }
 });
 
+// Upload or update student photo (base64 data URI)
+app.patch("/students/:id/photo", express.json({ limit: "5mb" }), async (req, res) => {
+  try {
+    const { photoUrl } = req.body;
+    if (!photoUrl && photoUrl !== '') return res.status(400).json({ error: "photoUrl is required" });
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      { photoUrl },
+      { new: true }
+    );
+    if (!student) return res.status(404).json({ error: "Student not found" });
+    res.json(student);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── ATTENDANCE ROUTES ─────────────────────────────────────────────────────
 
 app.post("/attendance", async (req, res) => {

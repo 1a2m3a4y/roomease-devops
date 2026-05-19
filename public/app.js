@@ -298,6 +298,7 @@
           <button class="student-action-btn action-violation" data-action="violation">Violation</button>
         </div>
         <div class="action-group">
+          <button class="student-action-btn action-view" data-action="profile" style="color:var(--accent-blue);background:var(--accent-blue-dim)">Profile</button>
           <button class="student-action-btn action-view"   data-action="view">History</button>
           <button class="student-action-btn action-edit"   data-action="edit">Edit</button>
           <button class="student-action-btn action-remove" data-action="remove">Delete</button>
@@ -314,6 +315,7 @@
           case 'edit':      openEditStudentModal(student);             break;
           case 'remove':    openRemoveModal(student);                  break;
           case 'view':      openDetailModal(student);                  break;
+          case 'profile':   openProfileModal(student);                 break;
         }
       });
     });
@@ -941,6 +943,112 @@
     });
   }
 
+  // ── Student Profile Modal ────────────────────────────────────────────────
+  const profileModal   = document.getElementById('studentProfileModal');
+  const profileContent = document.getElementById('studentProfileContent');
+  const profileTitle   = document.getElementById('studentProfileTitle');
+  const profilePhotoInput = document.getElementById('profilePhotoInput');
+
+  document.getElementById('closeStudentProfileModal').addEventListener('click', () => closeModal(profileModal));
+
+  let currentProfileStudent = null;
+
+  async function openProfileModal(student) {
+    currentProfileStudent = student;
+    profileTitle.textContent = `${student.name}'s Profile`;
+    profileContent.innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div>';
+    openModal(profileModal);
+
+    const violRes = await apiGet(`/violations/${student._id}`).catch(() => []);
+    const freshStudent = allStudents.find(s => s._id === student._id) || student;
+    renderProfile(freshStudent, violRes);
+  }
+
+  function renderProfile(student, violations) {
+    const initial = student.name.charAt(0).toUpperCase();
+    const photoHtml = student.photoUrl
+      ? `<img src="${student.photoUrl}" alt="${esc(student.name)}" class="profile-photo" />`
+      : `<div class="profile-photo-placeholder">${initial}</div>`;
+    const regDate = new Date(student.registeredAt);
+    const warnCount = student.warningCount || 0;
+    const totalFines = violations.reduce((s,v) => s + (v.fine||0), 0);
+    const unpaidFines = violations.filter(v=>!v.isPaid).reduce((s,v) => s + (v.fine||0), 0);
+
+    const violRows = violations.length === 0
+      ? '<div class="detail-empty">No violations recorded. 🎉</div>'
+      : violations.map(v => {
+          const dt = new Date(v.reportedAt);
+          const sc = `sev-badge-${v.severity}`;
+          const auto = v.isAuto ? '<span class="auto-badge">Auto</span>' : '';
+          const fineTag = v.fine > 0 ? `<span class="fine-badge ${v.isPaid?'fine-paid':''}">${fmtINR(v.fine)}</span>` : '';
+          return `<div class="detail-viol-row"><div class="detail-viol-top"><span class="detail-viol-type">${esc(v.type)}${auto}</span><div style="display:flex;align-items:center;gap:8px"><span class="severity-badge ${sc}">${cap(v.severity)}</span>${fineTag}<span class="detail-viol-date">${dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span></div></div>${v.description?`<div class="detail-viol-desc">${esc(v.description)}</div>`:''}</div>`;
+        }).join('');
+
+    const removePhotoBtn = student.photoUrl ? `<button class="btn btn-ghost" id="removePhotoBtn" style="margin-top:8px;font-size:12px;padding:4px 12px;color:var(--accent-red)">Remove Photo</button>` : '';
+
+    profileContent.innerHTML = `
+      <div class="profile-header">
+        <div class="profile-photo-area">
+          ${photoHtml}
+          <button class="photo-upload-btn" id="triggerPhotoUpload" title="Upload photo">📷</button>
+        </div>
+        <div class="profile-info">
+          <div class="profile-name">${esc(student.name)}</div>
+          <div class="profile-sub">${esc(student.hostelBlock)} • ${esc(student.college)}</div>
+          <div class="profile-detail-grid">
+            <div class="profile-detail-item"><span class="profile-detail-label">Room Number</span><span class="profile-detail-value">${student.roomNumber}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Registered</span><span class="profile-detail-value">${regDate.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Curfew Warnings</span><span class="profile-detail-value" style="color:${warnCount>=2?'var(--accent-red)':warnCount===1?'var(--accent-amber)':'var(--accent-green)'}">${warnCount}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Outstanding Fines</span><span class="profile-detail-value" style="color:${unpaidFines>0?'var(--accent-red)':'var(--accent-green)'}">${unpaidFines > 0 ? fmtINR(unpaidFines) : 'None'}</span></div>
+          </div>
+          ${removePhotoBtn}
+        </div>
+      </div>
+      <div class="profile-section-title">⚠️ Violations <span class="count-chip" style="background:${violations.length>0?'var(--accent-red-dim)':'var(--accent-green-dim)'};color:${violations.length>0?'var(--accent-red)':'var(--accent-green)'}">${violations.length}</span></div>
+      ${violRows}
+    `;
+
+    // Photo upload trigger
+    profileContent.querySelector('#triggerPhotoUpload').addEventListener('click', () => profilePhotoInput.click());
+
+    // Remove photo
+    const rmBtn = profileContent.querySelector('#removePhotoBtn');
+    if (rmBtn) {
+      rmBtn.addEventListener('click', async () => {
+        rmBtn.disabled = true; rmBtn.textContent = 'Removing...';
+        try {
+          await apiPatchBody(`/students/${student._id}/photo`, { photoUrl: '' });
+          student.photoUrl = '';
+          showToast('Photo removed.', 'success');
+          const violRes = await apiGet(`/violations/${student._id}`).catch(() => []);
+          renderProfile(student, violRes);
+          loadStudents();
+        } catch (ex) { showToast(ex.message || 'Failed to remove photo.', 'error'); }
+      });
+    }
+  }
+
+  // Photo file input handler
+  profilePhotoInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentProfileStudent) return;
+    if (file.size > 2 * 1024 * 1024) { showToast('Photo must be under 2 MB.', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const dataUri = reader.result;
+        await apiPatchBody(`/students/${currentProfileStudent._id}/photo`, { photoUrl: dataUri });
+        currentProfileStudent.photoUrl = dataUri;
+        showToast('Photo updated!', 'success');
+        const violRes = await apiGet(`/violations/${currentProfileStudent._id}`).catch(() => []);
+        renderProfile(currentProfileStudent, violRes);
+        loadStudents();
+      } catch (ex) { showToast(ex.message || 'Failed to upload photo.', 'error'); }
+    };
+    reader.readAsDataURL(file);
+    profilePhotoInput.value = '';
+  });
+
   // ── Edit Student System ──────────────────────────────────────────────────
   const editStudentModal = document.getElementById('editStudentModal');
   const editStudentForm  = document.getElementById('editStudentForm');
@@ -1132,6 +1240,16 @@
   }
   async function apiPatch(path) {
     const res = await fetch(`${API_BASE}${path}`, { method: 'PATCH' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  }
+  async function apiPatchBody(path, body) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     return data;
