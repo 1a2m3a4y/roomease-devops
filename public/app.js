@@ -190,7 +190,15 @@
     try {
       const res = await apiPost('/add', { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName, parentMobile, parentEmail, photoUrl });
       setBtnLoading(submitBtn, false, 'Register Student');
-      showFeedback(true, `${res.name} has been registered in Room ${res.roomNumber}.`);
+      const telegramLink = 'https://t.me/+H6cVRtw6OqkyMmU9';
+      showFeedback(true, `${res.name} has been registered in Room ${res.roomNumber}. Share this Telegram group link with the parent for violation alerts:`);
+      // Show the Telegram invite link below the feedback
+      const linkEl = document.createElement('a');
+      linkEl.href = telegramLink;
+      linkEl.target = '_blank';
+      linkEl.textContent = telegramLink;
+      linkEl.style.cssText = 'display:block;margin-top:8px;color:var(--accent-blue);font-size:13px;word-break:break-all;';
+      feedbackText.appendChild(linkEl);
       registerForm.reset();
       clearRegPhoto();
       showToast(`${res.name} registered successfully.`, 'success');
