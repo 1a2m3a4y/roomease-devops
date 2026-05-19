@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="RoomEase Student Portal — Raise queries, report room issues, and track complaints." />
+  <meta name="description" content="RoomEase Student Portal — Raise complaints, track violations, and view fines." />
   <title>RoomEase - Student Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,6 +37,7 @@
         <li><a href="/" class="nav-link">← Home</a></li>
         <li><a href="#raise" class="nav-link active">Raise Complaint</a></li>
         <li><a href="#my-complaints" class="nav-link">My Complaints</a></li>
+        <li><a href="#violations-panel" class="nav-link" style="color:var(--accent-red)">⚠ Violations</a></li>
       </ul>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
     </div>
@@ -45,8 +46,8 @@
   <section class="student-hero" id="hero">
     <a href="/" class="back-link">← Back to Home</a>
     <div class="hero-badge">Student Portal</div>
-    <h1 class="hero-title" style="font-family:var(--font-cursive);color:#fff;text-shadow:0 8px 32px rgba(255,255,255,0.35)">Student Complaint Portal</h1>
-    <p class="hero-subtitle" style="margin:16px auto 0;text-align:center">Select your college, hostel block, and name from the dropdown. Only registered students can raise complaints.</p>
+    <h1 class="hero-title" style="font-family:var(--font-cursive);color:#fff;text-shadow:0 8px 32px rgba(255,255,255,0.35)">Student Portal</h1>
+    <p class="hero-subtitle" style="margin:16px auto 0;text-align:center">Raise complaints, track violations, and view your fine status — all in one place.</p>
   </section>
 
   <section class="student-main" id="raise">
@@ -137,6 +138,24 @@
           <div class="complaints-grid" id="myComplaintsGrid" style="grid-template-columns:1fr"></div>
         </div>
       </div>
+
+      <!-- Violations Panel -->
+      <div id="violations-panel" style="margin-top:60px">
+        <div class="my-complaints-header">
+          <h2 class="my-complaints-title">⚠️ My Violations & Fines</h2>
+          <span class="my-complaints-count" id="violationCount" style="background:var(--accent-red-dim);color:var(--accent-red);border-color:rgba(255,90,90,0.2)">0 violations</span>
+        </div>
+        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">Select yourself from the dropdown to see violations issued against you.</p>
+        <div class="violation-summary" id="violationSummary" style="display:none">
+          <div class="summary-card"><div class="summary-value val-total" id="vTotal">0</div><div class="summary-label">Total</div></div>
+          <div class="summary-card"><div class="summary-value val-unpaid" id="vUnpaid">₹0</div><div class="summary-label">Unpaid Fines</div></div>
+          <div class="summary-card"><div class="summary-value val-paid" id="vPaid">₹0</div><div class="summary-label">Paid</div></div>
+          <div class="summary-card"><div class="summary-value val-warnings" id="vWarnings">0</div><div class="summary-label">Warnings</div></div>
+        </div>
+        <div class="loading-state" id="violationsLoading" style="display:none"><div class="spinner"></div><p>Loading violations...</p></div>
+        <div class="empty-state" id="violationsEmpty"><div class="empty-icon"></div><h3>No violations</h3><p>Select your identity above to check.</p></div>
+        <div class="violation-list" id="violationsList"></div>
+      </div>
     </div>
   </section>
 
@@ -201,6 +220,7 @@
         fields.disabled = false; fields.style.opacity = '1';
         showToast(`Welcome, ${selectedStudent.name}!`, 'success');
         loadMyComplaints();
+        loadMyViolations();
       }
     });
 
@@ -313,6 +333,53 @@
         myGrid.appendChild(card);
       });
       window._myComplaints = complaints;
+    }
+
+    // ── My Violations ──
+    const vLoading = document.getElementById('violationsLoading');
+    const vEmpty = document.getElementById('violationsEmpty');
+    const vList = document.getElementById('violationsList');
+    const vCount = document.getElementById('violationCount');
+    const vSummary = document.getElementById('violationSummary');
+
+    async function loadMyViolations() {
+      if (!selectedStudent) { vEmpty.style.display='flex'; vList.innerHTML=''; vSummary.style.display='none'; vCount.textContent='0 violations'; return; }
+      vLoading.style.display='flex'; vEmpty.style.display='none'; vList.innerHTML=''; vSummary.style.display='none';
+      try {
+        const res = await fetch(`${API}/violations/${selectedStudent._id}`);
+        const data = await res.json(); if (!res.ok) throw new Error(data.error);
+        renderViolations(data);
+      } catch { vLoading.style.display='none'; vEmpty.style.display='flex'; }
+    }
+
+    function renderViolations(violations) {
+      vLoading.style.display='none';
+      const unpaid = violations.filter(v=>!v.isPaid).reduce((s,v)=>s+v.fine,0);
+      const paid = violations.filter(v=>v.isPaid).reduce((s,v)=>s+v.fine,0);
+      const warns = violations.filter(v=>v.isAuto).length;
+      vCount.textContent = `${violations.length} violation${violations.length!==1?'s':''}`;
+      if (violations.length) {
+        vSummary.style.display='grid';
+        document.getElementById('vTotal').textContent = violations.length;
+        document.getElementById('vUnpaid').textContent = `₹${unpaid}`;
+        document.getElementById('vPaid').textContent = `₹${paid}`;
+        document.getElementById('vWarnings').textContent = warns;
+      } else { vSummary.style.display='none'; }
+      if (!violations.length) { vEmpty.style.display='flex'; vEmpty.querySelector('h3').textContent='No violations found'; vEmpty.querySelector('p').textContent='Great job! Keep it up.'; return; }
+      vEmpty.style.display='none'; vList.innerHTML='';
+      violations.forEach((v,i)=>{
+        const el = document.createElement('div');
+        el.className = 'violation-item';
+        el.style.animationDelay = `${i*0.04}s`;
+        const dt = new Date(v.reportedAt);
+        const ds = dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+        const ts = dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+        const sevCls = v.severity==='high'?'sev-badge-high':v.severity==='medium'?'sev-badge-medium':'sev-badge-low';
+        const fineCls = v.isPaid?'fine-chip-paid':'fine-chip-unpaid';
+        const autoTag = v.isAuto?'<span class="auto-badge">Auto</span>':'';
+        el.innerHTML = `<div class="violation-item-header"><div><span class="violation-item-type">${esc(v.type)}</span>${autoTag}</div><span class="severity-badge ${sevCls}">${v.severity}</span></div><div class="violation-item-desc">${esc(v.description)||'<em style="color:var(--text-muted)">No description.</em>'}</div><div class="violation-item-footer"><span class="violation-item-date">${ds} at ${ts}</span><span class="fine-chip ${fineCls}">₹${v.fine} ${v.isPaid?'Paid':'Unpaid'}</span></div>`;
+        vList.appendChild(el);
+      });
     }
 
     document.getElementById('myComplaintFilter').querySelectorAll('.filter-tab').forEach(tab => {
