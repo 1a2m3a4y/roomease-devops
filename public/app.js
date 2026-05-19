@@ -172,6 +172,10 @@
     const roomNumber = parseInt(roomNumberEl.value.trim(), 10);
     const college    = document.getElementById('studentCollege').value;
     const hostelBlock = blockInputEl.value;
+    const mobile     = (document.getElementById('studentMobile')?.value || '').trim();
+    const email      = (document.getElementById('studentEmail')?.value || '').trim();
+    const fatherName = (document.getElementById('studentFather')?.value || '').trim();
+    const motherName = (document.getElementById('studentMother')?.value || '').trim();
     let err = false;
 
     if (!name || name.length < 2) { setFieldErr(nameErrorEl, studentNameEl, name ? 'At least 2 characters required.' : 'Please enter the full name.'); err = true; }
@@ -181,7 +185,7 @@
 
     setBtnLoading(submitBtn, true, 'Registering...');
     try {
-      const res = await apiPost('/add', { name, roomNumber, college, hostelBlock });
+      const res = await apiPost('/add', { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName });
       setBtnLoading(submitBtn, false, 'Register Student');
       showFeedback(true, `${res.name} has been registered in Room ${res.roomNumber}.`);
       registerForm.reset();
@@ -998,6 +1002,10 @@
           <div class="profile-detail-grid">
             <div class="profile-detail-item"><span class="profile-detail-label">Room Number</span><span class="profile-detail-value">${student.roomNumber}</span></div>
             <div class="profile-detail-item"><span class="profile-detail-label">Registered</span><span class="profile-detail-value">${regDate.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Mobile</span><span class="profile-detail-value">${esc(student.mobile) || '—'}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Email</span><span class="profile-detail-value">${esc(student.email) || '—'}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Father's Name</span><span class="profile-detail-value">${esc(student.fatherName) || '—'}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Mother's Name</span><span class="profile-detail-value">${esc(student.motherName) || '—'}</span></div>
             <div class="profile-detail-item"><span class="profile-detail-label">Curfew Warnings</span><span class="profile-detail-value" style="color:${warnCount>=2?'var(--accent-red)':warnCount===1?'var(--accent-amber)':'var(--accent-green)'}">${warnCount}</span></div>
             <div class="profile-detail-item"><span class="profile-detail-label">Outstanding Fines</span><span class="profile-detail-value" style="color:${unpaidFines>0?'var(--accent-red)':'var(--accent-green)'}">${unpaidFines > 0 ? fmtINR(unpaidFines) : 'None'}</span></div>
           </div>
@@ -1067,6 +1075,10 @@
     updateBlockOptions(document.getElementById('editStudentCollege'), document.getElementById('editHostelBlock'));
     
     document.getElementById('editHostelBlock').value = student.hostelBlock || '';
+    document.getElementById('editMobile').value = student.mobile || '';
+    document.getElementById('editEmail').value = student.email || '';
+    document.getElementById('editFather').value = student.fatherName || '';
+    document.getElementById('editMother').value = student.motherName || '';
     
     clearErrors(document.getElementById('editNameError'), document.getElementById('editStudentName'));
     clearErrors(document.getElementById('editRoomError'), document.getElementById('editRoomNumber'));
@@ -1081,6 +1093,10 @@
     const roomNumber = parseInt(document.getElementById('editRoomNumber').value.trim(), 10);
     const college = document.getElementById('editStudentCollege').value;
     const hostelBlock = document.getElementById('editHostelBlock').value;
+    const mobile = (document.getElementById('editMobile')?.value || '').trim();
+    const email = (document.getElementById('editEmail')?.value || '').trim();
+    const fatherName = (document.getElementById('editFather')?.value || '').trim();
+    const motherName = (document.getElementById('editMother')?.value || '').trim();
     
     let err = false;
     if (!name || name.length < 2) err = true;
@@ -1090,7 +1106,7 @@
 
     setBtnLoading(btnSubmitEditStudent, true, 'Saving...');
     try {
-      await apiPut(`/students/${id}`, { name, roomNumber, college, hostelBlock });
+      await apiPut(`/students/${id}`, { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName });
       showToast('Student details updated', 'success');
       closeModal(editStudentModal);
       loadStudents();

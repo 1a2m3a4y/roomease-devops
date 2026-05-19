@@ -197,13 +197,17 @@ app.get("/meta/violations", (req, res) => {
 
 app.post("/add", async (req, res) => {
   try {
-    const { name, roomNumber, college, hostelBlock } = req.body;
+    const { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName } = req.body;
     if (!name || !roomNumber || !hostelBlock) return res.status(400).json({ error: "Name, room number, and hostel block are required" });
     const newStudent = new Student({ 
       name: name.trim(), 
       roomNumber: Number(roomNumber),
       college: college || 'MSRIT',
-      hostelBlock 
+      hostelBlock,
+      mobile: (mobile || '').trim(),
+      email: (email || '').trim(),
+      fatherName: (fatherName || '').trim(),
+      motherName: (motherName || '').trim()
     });
     await newStudent.save();
     res.json(newStudent);
@@ -255,10 +259,12 @@ app.delete("/students/:id", async (req, res) => {
 
 app.put("/students/:id", async (req, res) => {
   try {
-    const { name, roomNumber, college, hostelBlock } = req.body;
+    const { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName } = req.body;
     const student = await Student.findByIdAndUpdate(
       req.params.id, 
-      { name: name.trim(), roomNumber: Number(roomNumber), college: college || 'MSRIT', hostelBlock },
+      { name: name.trim(), roomNumber: Number(roomNumber), college: college || 'MSRIT', hostelBlock,
+        mobile: (mobile || '').trim(), email: (email || '').trim(),
+        fatherName: (fatherName || '').trim(), motherName: (motherName || '').trim() },
       { new: true, runValidators: true }
     );
     if (!student) return res.status(404).json({ error: "Student not found" });
