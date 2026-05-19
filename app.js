@@ -93,6 +93,7 @@ const Attendance = require("./models/Attendance");
 const Violation  = require("./models/Violation");
 const Complaint  = require("./models/Complaint");
 const { VIOLATION_FINES } = require("./models/Violation");
+const { sendViolationAlert } = require("./utils/smsService");
 
 // ── Curfew rules ──────────────────────────────────────────────────────────
 const ENTRY_CURFEW_HOUR   = 22;  // 10 PM
@@ -345,6 +346,9 @@ app.post("/attendance", async (req, res) => {
           fine,
           isAuto:      true
         });
+
+        // Send SMS notification to parent (non-blocking)
+        sendViolationAlert(student, autoViolation).catch(err => console.error('[SMS] Alert error:', err.message));
       }
     }
 
@@ -431,6 +435,10 @@ app.post("/violations", async (req, res) => {
       severity:    severity || "medium",
       fine
     });
+
+    // Send SMS notification to parent (non-blocking)
+    sendViolationAlert(student, violation).catch(err => console.error('[SMS] Alert error:', err.message));
+
     res.json(violation);
   } catch (err) {
     res.status(500).json({ error: err.message });
