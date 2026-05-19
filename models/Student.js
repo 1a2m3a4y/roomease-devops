@@ -9,6 +9,8 @@ const studentSchema = new mongoose.Schema({
   email:          { type: String, default: '' },
   fatherName:     { type: String, default: '' },
   motherName:     { type: String, default: '' },
+  parentMobile:   { type: String, default: '' },
+  parentEmail:    { type: String, default: '' },
   warningCount:   { type: Number, default: 0 },   // curfew warnings (fine at 2)
   photoUrl:       { type: String, default: '' },   // base64 data URI (optional)
   registeredAt:   { type: Date,   default: Date.now }

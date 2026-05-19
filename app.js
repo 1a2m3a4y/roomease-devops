@@ -58,7 +58,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // ── Core middleware ───────────────────────────────────────────────────────
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "5mb" }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, "public"), { index: false }));
 
@@ -197,7 +197,7 @@ app.get("/meta/violations", (req, res) => {
 
 app.post("/add", async (req, res) => {
   try {
-    const { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName } = req.body;
+    const { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName, parentMobile, parentEmail, photoUrl } = req.body;
     if (!name || !roomNumber || !hostelBlock) return res.status(400).json({ error: "Name, room number, and hostel block are required" });
     const newStudent = new Student({ 
       name: name.trim(), 
@@ -207,7 +207,10 @@ app.post("/add", async (req, res) => {
       mobile: (mobile || '').trim(),
       email: (email || '').trim(),
       fatherName: (fatherName || '').trim(),
-      motherName: (motherName || '').trim()
+      motherName: (motherName || '').trim(),
+      parentMobile: (parentMobile || '').trim(),
+      parentEmail: (parentEmail || '').trim(),
+      photoUrl: photoUrl || ''
     });
     await newStudent.save();
     res.json(newStudent);
@@ -259,12 +262,13 @@ app.delete("/students/:id", async (req, res) => {
 
 app.put("/students/:id", async (req, res) => {
   try {
-    const { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName } = req.body;
+    const { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName, parentMobile, parentEmail } = req.body;
     const student = await Student.findByIdAndUpdate(
       req.params.id, 
       { name: name.trim(), roomNumber: Number(roomNumber), college: college || 'MSRIT', hostelBlock,
         mobile: (mobile || '').trim(), email: (email || '').trim(),
-        fatherName: (fatherName || '').trim(), motherName: (motherName || '').trim() },
+        fatherName: (fatherName || '').trim(), motherName: (motherName || '').trim(),
+        parentMobile: (parentMobile || '').trim(), parentEmail: (parentEmail || '').trim() },
       { new: true, runValidators: true }
     );
     if (!student) return res.status(404).json({ error: "Student not found" });

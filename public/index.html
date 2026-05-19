@@ -227,6 +227,29 @@
                 <label for="studentMother" class="form-label">Mother's Name</label>
                 <input type="text" id="studentMother" name="motherName" class="form-input" placeholder="e.g. Sunita Doe" />
               </div>
+              <div class="form-group">
+                <label for="studentParentMobile" class="form-label">Parent's Mobile Number</label>
+                <input type="tel" id="studentParentMobile" name="parentMobile" class="form-input" placeholder="e.g. 9876543210" />
+              </div>
+              <div class="form-group">
+                <label for="studentParentEmail" class="form-label">Parent's Email</label>
+                <input type="email" id="studentParentEmail" name="parentEmail" class="form-input" placeholder="e.g. parent@email.com" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Student Photo <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                <div class="photo-upload-zone" id="regPhotoZone">
+                  <input type="file" id="regPhotoInput" accept="image/*" hidden />
+                  <div class="photo-upload-preview" id="regPhotoPreview" hidden>
+                    <img id="regPhotoThumb" alt="Preview" />
+                    <button type="button" class="photo-remove-btn" id="regPhotoRemove">&times;</button>
+                  </div>
+                  <div class="photo-upload-prompt" id="regPhotoPrompt">
+                    <span class="photo-upload-icon">📷</span>
+                    <span>Click to upload photo</span>
+                    <span style="font-size:11px;color:var(--text-muted)">Max 2 MB • JPG, PNG</span>
+                  </div>
+                </div>
+              </div>
               <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
                 <span class="btn-label">Register Student</span>
                 <span class="btn-loader" hidden></span>
@@ -685,6 +708,14 @@
         <div class="form-group">
           <label for="editMother" class="form-label">Mother's Name</label>
           <input type="text" id="editMother" name="motherName" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="editParentMobile" class="form-label">Parent's Mobile Number</label>
+          <input type="tel" id="editParentMobile" name="parentMobile" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label for="editParentEmail" class="form-label">Parent's Email</label>
+          <input type="email" id="editParentEmail" name="parentEmail" class="form-input" />
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-ghost" id="cancelEditStudentModal">Cancel</button>

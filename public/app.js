@@ -176,6 +176,9 @@
     const email      = (document.getElementById('studentEmail')?.value || '').trim();
     const fatherName = (document.getElementById('studentFather')?.value || '').trim();
     const motherName = (document.getElementById('studentMother')?.value || '').trim();
+    const parentMobile = (document.getElementById('studentParentMobile')?.value || '').trim();
+    const parentEmail  = (document.getElementById('studentParentEmail')?.value || '').trim();
+    const photoUrl   = regPhotoDataUri;
     let err = false;
 
     if (!name || name.length < 2) { setFieldErr(nameErrorEl, studentNameEl, name ? 'At least 2 characters required.' : 'Please enter the full name.'); err = true; }
@@ -185,10 +188,11 @@
 
     setBtnLoading(submitBtn, true, 'Registering...');
     try {
-      const res = await apiPost('/add', { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName });
+      const res = await apiPost('/add', { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName, parentMobile, parentEmail, photoUrl });
       setBtnLoading(submitBtn, false, 'Register Student');
       showFeedback(true, `${res.name} has been registered in Room ${res.roomNumber}.`);
       registerForm.reset();
+      clearRegPhoto();
       showToast(`${res.name} registered successfully.`, 'success');
       loadStudents();
     } catch (ex) {
@@ -196,6 +200,46 @@
       showFeedback(false, ex.message || 'Could not connect to the server.');
     }
   });
+
+  // ── Registration Photo Upload ────────────────────────────────────────────
+  let regPhotoDataUri = '';
+  const regPhotoInput   = document.getElementById('regPhotoInput');
+  const regPhotoZone    = document.getElementById('regPhotoZone');
+  const regPhotoPreview = document.getElementById('regPhotoPreview');
+  const regPhotoThumb   = document.getElementById('regPhotoThumb');
+  const regPhotoPrompt  = document.getElementById('regPhotoPrompt');
+  const regPhotoRemove  = document.getElementById('regPhotoRemove');
+
+  regPhotoZone.addEventListener('click', (e) => {
+    if (e.target === regPhotoRemove || e.target.closest('#regPhotoRemove')) return;
+    regPhotoInput.click();
+  });
+
+  regPhotoInput.addEventListener('change', () => {
+    const file = regPhotoInput.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { showToast('Photo must be under 2 MB.', 'error'); regPhotoInput.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      regPhotoDataUri = reader.result;
+      regPhotoThumb.src = regPhotoDataUri;
+      regPhotoPreview.hidden = false;
+      regPhotoPrompt.hidden = true;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  regPhotoRemove.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clearRegPhoto();
+  });
+
+  function clearRegPhoto() {
+    regPhotoDataUri = '';
+    regPhotoInput.value = '';
+    regPhotoPreview.hidden = true;
+    regPhotoPrompt.hidden = false;
+  }
 
   function clearErrors(errEl, inputEl) { errEl.textContent = ''; inputEl.classList.remove('error'); }
   function setFieldErr(el, input, msg) { el.textContent = msg; input.classList.add('error'); }
@@ -1006,6 +1050,8 @@
             <div class="profile-detail-item"><span class="profile-detail-label">Email</span><span class="profile-detail-value">${esc(student.email) || '—'}</span></div>
             <div class="profile-detail-item"><span class="profile-detail-label">Father's Name</span><span class="profile-detail-value">${esc(student.fatherName) || '—'}</span></div>
             <div class="profile-detail-item"><span class="profile-detail-label">Mother's Name</span><span class="profile-detail-value">${esc(student.motherName) || '—'}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Parent's Mobile</span><span class="profile-detail-value">${esc(student.parentMobile) || '—'}</span></div>
+            <div class="profile-detail-item"><span class="profile-detail-label">Parent's Email</span><span class="profile-detail-value">${esc(student.parentEmail) || '—'}</span></div>
             <div class="profile-detail-item"><span class="profile-detail-label">Curfew Warnings</span><span class="profile-detail-value" style="color:${warnCount>=2?'var(--accent-red)':warnCount===1?'var(--accent-amber)':'var(--accent-green)'}">${warnCount}</span></div>
             <div class="profile-detail-item"><span class="profile-detail-label">Outstanding Fines</span><span class="profile-detail-value" style="color:${unpaidFines>0?'var(--accent-red)':'var(--accent-green)'}">${unpaidFines > 0 ? fmtINR(unpaidFines) : 'None'}</span></div>
           </div>
@@ -1079,6 +1125,8 @@
     document.getElementById('editEmail').value = student.email || '';
     document.getElementById('editFather').value = student.fatherName || '';
     document.getElementById('editMother').value = student.motherName || '';
+    document.getElementById('editParentMobile').value = student.parentMobile || '';
+    document.getElementById('editParentEmail').value = student.parentEmail || '';
     
     clearErrors(document.getElementById('editNameError'), document.getElementById('editStudentName'));
     clearErrors(document.getElementById('editRoomError'), document.getElementById('editRoomNumber'));
@@ -1097,6 +1145,8 @@
     const email = (document.getElementById('editEmail')?.value || '').trim();
     const fatherName = (document.getElementById('editFather')?.value || '').trim();
     const motherName = (document.getElementById('editMother')?.value || '').trim();
+    const parentMobile = (document.getElementById('editParentMobile')?.value || '').trim();
+    const parentEmail = (document.getElementById('editParentEmail')?.value || '').trim();
     
     let err = false;
     if (!name || name.length < 2) err = true;
@@ -1106,7 +1156,7 @@
 
     setBtnLoading(btnSubmitEditStudent, true, 'Saving...');
     try {
-      await apiPut(`/students/${id}`, { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName });
+      await apiPut(`/students/${id}`, { name, roomNumber, college, hostelBlock, mobile, email, fatherName, motherName, parentMobile, parentEmail });
       showToast('Student details updated', 'success');
       closeModal(editStudentModal);
       loadStudents();

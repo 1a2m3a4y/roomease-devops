@@ -909,4 +909,12 @@ select.form-input option { background: var(--bg-raised); }
 .photo-removing { opacity:0.5; cursor:wait; }
 @media (max-width:500px) { .profile-header { flex-direction:column; align-items:center; text-align:center; } .profile-detail-grid { grid-template-columns:1fr; } }
 
-
+/* --- 23. Registration Photo Upload Zone --- */
+.photo-upload-zone { border:2px dashed var(--bg-border-mid); border-radius:var(--radius-lg); padding:16px; cursor:pointer; transition:all var(--transition); position:relative; }
+.photo-upload-zone:hover { border-color:var(--accent-blue); background:rgba(89,131,252,0.04); }
+.photo-upload-prompt { display:flex; flex-direction:column; align-items:center; gap:6px; color:var(--text-secondary); font-size:13px; font-weight:500; }
+.photo-upload-icon { font-size:28px; }
+.photo-upload-preview { display:flex; align-items:center; gap:14px; }
+.photo-upload-preview img { width:72px; height:72px; border-radius:var(--radius-md); object-fit:cover; border:2px solid var(--bg-border); }
+.photo-remove-btn { width:28px; height:28px; border-radius:50%; background:var(--accent-red-dim); color:var(--accent-red); border:1px solid rgba(255,90,90,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; font-weight:700; transition:all var(--transition); }
+.photo-remove-btn:hover { background:var(--accent-red); color:#fff; }
