@@ -477,7 +477,7 @@ select.form-input option { background: var(--bg-raised); }
 .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-primary); }
 .empty-state p { font-size: 14px; max-width: 340px; margin-bottom: 16px; }
 
-.student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
 .student-card { background: var(--bg-raised); border: 1px solid var(--bg-border); border-radius: var(--radius-lg); padding: 20px 22px; transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition); animation: fadeInCard 0.3s ease both; }
 @keyframes fadeInCard { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .student-card:hover { border-color: var(--bg-border-mid); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
@@ -486,9 +486,9 @@ select.form-input option { background: var(--bg-raised); }
 .student-info { flex: 1; min-width: 0; }
 .student-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
 .student-room { font-size: 13px; color: var(--text-secondary); }
-.student-card-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--bg-border); padding-top: 14px; gap: 6px; }
-.action-group { display: flex; gap: 4px; }
-.student-action-btn { font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: var(--radius-sm); transition: all var(--transition); border: 1px solid transparent; cursor: pointer; }
+.student-card-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; border-top: 1px solid var(--bg-border); padding-top: 14px; gap: 5px; }
+.action-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.student-action-btn { font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: var(--radius-sm); transition: all var(--transition); border: 1px solid transparent; cursor: pointer; white-space: nowrap; }
 .action-entry { color: var(--accent-green); background: var(--accent-green-dim); }
 .action-entry:hover { border-color: rgba(52,201,122,0.3); }
 .action-exit { color: var(--accent-amber); background: rgba(245,166,35,0.1); }
